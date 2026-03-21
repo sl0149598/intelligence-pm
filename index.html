@@ -87,23 +87,29 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent)}
 .timeline-day.weekend{background:rgba(255,255,255,.02)}
 .timeline-day.today{background:rgba(74,142,255,.15);color:var(--accent);font-weight:600}
 .timeline-body{position:relative}
-.timeline-row{display:flex;align-items:center;height:40px;border-bottom:1px solid rgba(46,51,71,.4);position:relative}
 .timeline-gridline{position:absolute;top:0;bottom:0;width:1px;background:rgba(46,51,71,.4)}
 .timeline-gridline.today{background:transparent;width:0}
 .today-marker{position:absolute;top:0;bottom:0;width:2px;background:var(--yellow);z-index:5;pointer-events:none}
 .today-marker::before{content:'';position:absolute;top:-4px;left:-5px;width:12px;height:12px;background:var(--yellow);border-radius:50%;border:2px solid var(--bg)}
-.gantt-bar{position:absolute;height:14px;border-radius:7px;top:13px;cursor:pointer;transition:opacity .15s;min-width:8px}
-.gantt-bar:hover{opacity:.85;height:18px;top:11px}
-.gantt-bar .bar-label{font-size:9px;font-weight:600;color:#fff;padding:0 6px;white-space:nowrap;text-shadow:0 1px 2px rgba(0,0,0,.4);position:absolute;left:20px;top:50%;transform:translateY(-50%)}
-.bar-cap{position:absolute;width:10px;height:10px;border-radius:50%;top:2px;border:2px solid var(--bg);z-index:2;cursor:ew-resize}
-.bar-cap.start{left:-3px}.bar-cap.end{right:-3px}
-.bar-progress-tick{position:absolute;top:-4px;width:3px;height:22px;border-radius:2px;z-index:3}
-.bar-progress-tick::before{content:'';position:absolute;top:-3px;left:-3px;width:9px;height:9px;border-radius:50%;border:2px solid var(--bg)}
-.bar-today-tick{position:absolute;top:-4px;width:3px;height:22px;background:var(--yellow);border-radius:2px;z-index:2}
-.bar-today-tick::before{content:'';position:absolute;top:-4px;left:-4px;width:11px;height:11px;background:var(--yellow);border-radius:50%;border:2px solid var(--bg)}
-.gantt-star{position:absolute;top:4px;width:20px;height:20px;z-index:4;cursor:pointer;text-align:center;font-size:16px;line-height:20px;filter:drop-shadow(0 1px 2px rgba(0,0,0,.4));transition:transform .15s}
+.timeline-row{display:flex;align-items:center;height:56px;border-bottom:1px solid rgba(46,51,71,.4);position:relative}
+.gantt-bar{position:absolute;height:6px;border-radius:3px;top:16px;cursor:pointer;min-width:8px}
+.gantt-bar:hover{height:8px;top:15px}
+.gantt-bar .bar-fill{position:absolute;top:0;left:0;height:100%;border-radius:3px;opacity:.4}
+.gantt-bar .bar-label{font-size:9px;font-weight:600;color:var(--text);padding:0;white-space:nowrap;position:absolute;top:-14px;left:0}
+.bar-cap{position:absolute;width:12px;height:12px;border-radius:50%;top:-3px;border:2px solid var(--bg);z-index:6;cursor:ew-resize;transition:transform .1s}
+.bar-cap:hover{transform:scale(1.3)}
+.bar-cap.start{left:-4px}.bar-cap.end{right:-4px}
+.bar-tick{position:absolute;top:14px;width:2px;height:18px;z-index:3;pointer-events:none}
+.bar-tick::after{content:attr(data-label);position:absolute;bottom:-14px;left:50%;transform:translateX(-50%);font-size:8px;font-weight:600;white-space:nowrap;font-family:'JetBrains Mono',monospace}
+.bar-tick-dot{position:absolute;top:14px;width:8px;height:8px;border-radius:50%;margin-left:-3px;z-index:4;pointer-events:none}
+.bar-tick-dot::before{content:'';position:absolute;top:8px;left:3px;width:2px;height:14px;background:inherit;border-radius:1px}
+.bar-tick-dot::after{content:attr(data-label);position:absolute;top:24px;left:50%;transform:translateX(-50%);font-size:8px;font-weight:600;white-space:nowrap;font-family:'JetBrains Mono',monospace}
+.gantt-star{position:absolute;top:10px;width:20px;height:20px;z-index:7;cursor:pointer;text-align:center;font-size:14px;line-height:12px;filter:drop-shadow(0 1px 2px rgba(0,0,0,.4));transition:transform .15s}
+.gantt-star::before{content:'';position:absolute;top:14px;left:9px;width:2px;height:14px;background:var(--yellow);border-radius:1px}
+.gantt-star::after{content:attr(data-label);position:absolute;top:30px;left:50%;transform:translateX(-50%);font-size:8px;color:var(--yellow);white-space:nowrap;font-family:'JetBrains Mono',monospace}
 .gantt-star:hover{transform:scale(1.3)}
-.gantt-milestone-diamond{position:absolute;width:14px;height:14px;top:13px;transform:rotate(45deg);border-radius:2px;cursor:pointer;z-index:2}
+.gantt-milestone-diamond{position:absolute;width:14px;height:14px;top:12px;transform:rotate(45deg);border-radius:2px;cursor:pointer;z-index:2}
+.gantt-milestone-diamond::before{content:'';position:absolute;top:14px;left:5px;width:2px;height:14px;transform:rotate(-45deg);transform-origin:top center}
 .gantt-milestone-diamond:hover{opacity:.85}
 .gantt-zoom{display:flex;align-items:center;gap:4px;padding:8px 16px;border-bottom:1px solid var(--border);background:var(--bg)}
 .zoom-btn{padding:4px 10px;border-radius:4px;font-size:11px;font-weight:600;background:var(--surface);color:var(--text2);border:1px solid var(--border)}
@@ -220,7 +226,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent)}
   <button class="modal-close" onclick="closeModal('taskModal')">&times;</button>
   <h2 id="taskModalTitle">Add Task</h2><input type="hidden" id="taskEditId">
   <div class="form-row"><div class="form-col"><label>Task Name</label><input type="text" id="taskName" placeholder="e.g., Submit site plan to McKinney Planning"></div></div>
-  <div class="form-row"><div class="form-col"><label>Category</label><select id="taskCategory"><option>Permitting</option><option>Design</option><option>Construction</option><option>Infrastructure</option><option>Legal</option><option>Financial</option><option selected>General</option></select></div><div class="form-col"><label>Assigned To</label><input type="text" id="taskAssigned" placeholder="e.g., Bret Flory"></div></div>
+  <div class="form-row"><div class="form-col"><label>Category</label><select id="taskCategory"><option>Permitting</option><option>Design</option><option>Construction</option><option>Infrastructure</option><option>Legal</option><option>Financial</option><option selected>General</option></select></div><div class="form-col"><label>Assigned To</label><input type="text" id="taskAssigned" placeholder="e.g., Bret Flory"></div><div class="form-col" style="max-width:80px"><label>Bar Color</label><input type="color" id="taskBarColor" value="#4a8eff" style="padding:2px;height:36px;cursor:pointer"></div></div>
   <div class="form-row"><div class="form-col"><label>Start Date</label><input type="date" id="taskStart"></div><div class="form-col"><label>End Date</label><input type="date" id="taskEnd"></div></div>
   <div class="form-row"><div class="form-col"><label>Progress (%)</label><input type="number" id="taskProgress" min="0" max="100" value="0"></div><div class="form-col"><label>Depends On (Task IDs)</label><input type="text" id="taskDepends" placeholder="e.g., 1,3"></div></div>
   <div class="checkbox-row"><input type="checkbox" id="taskMilestone"><label for="taskMilestone">Milestone (single date)</label></div>
@@ -417,34 +423,34 @@ function renderGantt(){
   mH+='<div class="timeline-month" style="width:'+(td*dw-mx)+'px">'+ml+'</div>';
   document.getElementById('timelineHeader').innerHTML='<div class="timeline-months" style="width:'+tw+'px">'+mH+'</div><div class="timeline-days" style="width:'+tw+'px">'+dayH+'</div>';
   var todayX=Math.floor((today-minD)/86400000)*dw;
-  var body='<div style="position:absolute;top:0;left:0;right:0;bottom:0;pointer-events:none;width:'+tw+'px;height:'+tasks.length*40+'px">';
+  var body='<div style="position:absolute;top:0;left:0;right:0;bottom:0;pointer-events:none;width:'+tw+'px;height:'+tasks.length*56+'px">';
   for(var i=0;i<td;i+=7)body+='<div class="timeline-gridline" style="left:'+i*dw+'px"></div>';
-  if(todayX>=0&&todayX<=tw)body+='<div class="today-marker" style="left:'+todayX+'px;height:'+tasks.length*40+'px"></div>';
+  if(todayX>=0&&todayX<=tw)body+='<div class="today-marker" style="left:'+todayX+'px;height:'+tasks.length*56+'px"></div>';
   body+='</div>';
-  tasks.forEach(function(t,idx){var tid="'"+t.id+"'";
+  tasks.forEach(function(t,idx){var tid="'"+t.id+"'";var col=t.bar_color||getCatColor(t.category);
     body+='<div class="timeline-row" style="width:'+tw+'px">';
     if(t.is_milestone&&t.start_date&&(!t.end_date||t.end_date===t.start_date)){
       var x=Math.floor((new Date(t.start_date)-minD)/86400000)*dw;
-      body+='<div class="gantt-milestone-diamond" style="left:'+(x-7)+'px;background:'+getCatColor(t.category)+'" title="'+esc(t.task_name)+'" onclick="showTaskModal('+tid+')"></div>';
+      body+='<div class="gantt-milestone-diamond" style="left:'+(x-7)+'px;background:'+col+'" title="'+esc(t.task_name)+'" onclick="showTaskModal('+tid+')"></div>';
     } else if(t.start_date&&t.end_date){
       var sx=Math.floor((new Date(t.start_date)-minD)/86400000)*dw;
       var ex=Math.floor((new Date(t.end_date)-minD)/86400000)*dw+dw;
-      var bw=Math.max(ex-sx,8);var col=getCatColor(t.category);
-      body+='<div class="gantt-bar" style="left:'+sx+'px;width:'+bw+'px;background:'+col+'" title="'+esc(t.task_name)+'" onclick="openBarMenu(event,'+tid+')">';
-      body+='<div class="bar-cap start" style="background:'+col+'" title="Start: '+esc(t.start_date)+'"></div>';
-      body+='<div class="bar-cap end" style="background:'+col+'" title="End: '+esc(t.end_date)+'"></div>';
+      var bw=Math.max(ex-sx,8);
+      body+='<div class="gantt-bar" data-tid="'+t.id+'" style="left:'+sx+'px;width:'+bw+'px;background:'+col+'" title="'+esc(t.task_name)+'" onclick="openBarMenu(event,'+tid+')">';
+      body+='<div class="bar-fill" style="width:'+(t.progress||0)+'%;background:'+col+'"></div>';
       body+='<span class="bar-label">'+(bw>60?esc(t.task_name):'')+'</span>';
-      var todayInBar=todayX-sx;
-      if(todayInBar>0&&todayInBar<bw){body+='<div class="bar-today-tick" style="left:'+todayInBar+'px"></div>';}
-      if(t.progress>0){var progX=bw*t.progress/100;var isAhead=t.progress/100>=(todayInBar/bw);var progCol=isAhead?'var(--green)':'var(--red)';
-        body+='<div class="bar-progress-tick" style="left:'+progX+'px;background:'+progCol+'"><'+'/div>';
-        body+='<div style="position:absolute;top:0;left:0;width:'+progX+'px;height:100%;background:rgba(255,255,255,.15);border-radius:7px 0 0 7px"></div>';}
+      body+='<div class="bar-cap start" style="background:'+col+'" data-tid="'+t.id+'" data-side="start" onmousedown="startDrag(event)"></div>';
+      body+='<div class="bar-cap end" style="background:'+col+'" data-tid="'+t.id+'" data-side="end" onmousedown="startDrag(event)"></div>';
       body+='</div>';
+      var todayInBar=todayX-sx;
+      if(todayInBar>0&&todayInBar<bw){body+='<div class="bar-tick-dot" style="left:'+(sx+todayInBar)+'px;background:var(--yellow)" data-label="Today"></div>';}
+      if(t.progress>0){var progX=bw*t.progress/100;var isAhead=(bw>0&&todayInBar>0)?t.progress/100>=(todayInBar/bw):true;var progCol=isAhead?'var(--green)':'var(--red)';
+        body+='<div class="bar-tick-dot" style="left:'+(sx+progX)+'px;background:'+progCol+'" data-label="'+t.progress+'%"></div>';}
       var tMilestones=(window._taskMilestones||[]).filter(function(m){return m.task_id===t.id;});
-      tMilestones.forEach(function(m){if(m.milestone_date){var mx=Math.floor((new Date(m.milestone_date)-minD)/86400000)*dw;if(mx>=sx&&mx<=ex){body+='<div class="gantt-star" style="left:'+(mx-10)+'px" title="'+esc(m.title)+'" onclick="event.stopPropagation();showMilestoneNote(\''+m.id+'\')">&#9733;</div>';}}});
+      tMilestones.forEach(function(m){if(m.milestone_date){var mx=Math.floor((new Date(m.milestone_date)-minD)/86400000)*dw;if(mx>=sx-dw&&mx<=ex+dw){body+='<div class="gantt-star" style="left:'+(mx-10)+'px" data-label="'+esc(m.title)+'" title="'+esc(m.title)+': '+esc(m.notes||'')+'" onclick="event.stopPropagation();showMilestoneNote(\''+m.id+'\')">&#9733;</div>';}}});
     } else if(t.start_date){
       var x=Math.floor((new Date(t.start_date)-minD)/86400000)*dw;
-      body+='<div class="gantt-bar" style="left:'+x+'px;width:'+dw*7+'px;background:'+getCatColor(t.category)+';opacity:.5" title="'+esc(t.task_name)+' (no end date)" onclick="showTaskModal('+tid+')"><span class="bar-label">'+esc(t.task_name)+'</span></div>';
+      body+='<div class="gantt-bar" style="left:'+x+'px;width:'+dw*7+'px;background:'+col+';opacity:.5" title="'+esc(t.task_name)+' (no end date)" onclick="showTaskModal('+tid+')"><span class="bar-label">'+esc(t.task_name)+'</span></div>';
     }
     body+='</div>';
   });
@@ -467,14 +473,14 @@ function showTaskModal(editId){
   if(typeof editId==='object')editId=undefined;
   if(!ganttTableExists){alert('The gantt_tasks table does not exist yet. Run the SQL script in Supabase SQL Editor first.');return;}
   var title=document.getElementById('taskModalTitle');
-  if(editId){var t=allTasks.find(function(x){return x.id===editId;});if(!t)return;title.textContent='Edit Task';document.getElementById('taskEditId').value=t.id;document.getElementById('taskName').value=t.task_name||'';document.getElementById('taskCategory').value=t.category||'General';document.getElementById('taskAssigned').value=t.assigned_to||'';document.getElementById('taskStart').value=t.start_date||'';document.getElementById('taskEnd').value=t.end_date||'';document.getElementById('taskProgress').value=t.progress||0;document.getElementById('taskDepends').value=t.depends_on||'';document.getElementById('taskMilestone').checked=t.is_milestone||false;document.getElementById('taskNotes').value=t.notes||'';}
-  else{title.textContent='Add Task';document.getElementById('taskEditId').value='';document.getElementById('taskName').value='';document.getElementById('taskCategory').value='General';document.getElementById('taskAssigned').value='';document.getElementById('taskStart').value='';document.getElementById('taskEnd').value='';document.getElementById('taskProgress').value=0;document.getElementById('taskDepends').value='';document.getElementById('taskMilestone').checked=false;document.getElementById('taskNotes').value='';}
+  if(editId){var t=allTasks.find(function(x){return x.id===editId;});if(!t)return;title.textContent='Edit Task';document.getElementById('taskEditId').value=t.id;document.getElementById('taskName').value=t.task_name||'';document.getElementById('taskCategory').value=t.category||'General';document.getElementById('taskAssigned').value=t.assigned_to||'';document.getElementById('taskStart').value=t.start_date||'';document.getElementById('taskEnd').value=t.end_date||'';document.getElementById('taskProgress').value=t.progress||0;document.getElementById('taskDepends').value=t.depends_on||'';document.getElementById('taskMilestone').checked=t.is_milestone||false;document.getElementById('taskNotes').value=t.notes||'';document.getElementById('taskBarColor').value=t.bar_color||catToHex(t.category);}
+  else{title.textContent='Add Task';document.getElementById('taskEditId').value='';document.getElementById('taskName').value='';document.getElementById('taskCategory').value='General';document.getElementById('taskAssigned').value='';document.getElementById('taskStart').value='';document.getElementById('taskEnd').value='';document.getElementById('taskProgress').value=0;document.getElementById('taskDepends').value='';document.getElementById('taskMilestone').checked=false;document.getElementById('taskNotes').value='';document.getElementById('taskBarColor').value='#8b90a5';}
   document.getElementById('taskEnd').parentElement.style.display='';
   showModal('taskModal');
 }
 async function saveTask(){
   var editId=document.getElementById('taskEditId').value;
-  var data={task_name:document.getElementById('taskName').value.trim(),category:document.getElementById('taskCategory').value,assigned_to:document.getElementById('taskAssigned').value.trim(),start_date:document.getElementById('taskStart').value||null,end_date:document.getElementById('taskEnd').value||null,progress:parseInt(document.getElementById('taskProgress').value)||0,depends_on:document.getElementById('taskDepends').value.trim(),is_milestone:document.getElementById('taskMilestone').checked,notes:document.getElementById('taskNotes').value.trim()};
+  var data={task_name:document.getElementById('taskName').value.trim(),category:document.getElementById('taskCategory').value,assigned_to:document.getElementById('taskAssigned').value.trim(),start_date:document.getElementById('taskStart').value||null,end_date:document.getElementById('taskEnd').value||null,progress:parseInt(document.getElementById('taskProgress').value)||0,depends_on:document.getElementById('taskDepends').value.trim(),is_milestone:document.getElementById('taskMilestone').checked,notes:document.getElementById('taskNotes').value.trim(),bar_color:document.getElementById('taskBarColor').value};
   if(!data.task_name){alert('Task name is required.');return;}
   if(data.is_milestone&&!data.end_date)data.end_date=data.start_date;
   try{if(editId){await sb('gantt_tasks','id=eq.'+editId,'PATCH',data);}else{data.source='manual';data.source_ref='';await sb('gantt_tasks','','POST',data);}
@@ -571,6 +577,17 @@ function showModal(id){document.getElementById(id).classList.add('show');}
 function closeModal(id){document.getElementById(id).classList.remove('show');}
 document.querySelectorAll('.modal-overlay').forEach(function(el){el.addEventListener('click',function(e){if(e.target===el)closeModal(el.id);});});
 if(typeof pdfjsLib!=='undefined')pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+// COLOR HELPERS
+function catToHex(cat){var m={'Permitting':'#fb923c','Design':'#4a8eff','Construction':'#34d399','Infrastructure':'#a78bfa','Legal':'#f87171','Financial':'#fbbf24','General':'#8b90a5'};return m[cat]||'#8b90a5';}
+document.getElementById('taskCategory').addEventListener('change',function(){document.getElementById('taskBarColor').value=catToHex(this.value);});
+
+// DRAG TO RESIZE
+var _drag=null;
+function startDrag(e){e.stopPropagation();e.preventDefault();var cap=e.target;var tid=cap.dataset.tid;var side=cap.dataset.side;var task=allTasks.find(function(x){return x.id===tid;});if(!task)return;_drag={tid:tid,side:side,startX:e.clientX,origStart:task.start_date,origEnd:task.end_date};document.addEventListener('mousemove',onDrag);document.addEventListener('mouseup',endDrag);}
+function onDrag(e){if(!_drag)return;var dx=e.clientX-_drag.startX;var dayShift=Math.round(dx/currentDayWidth());var task=allTasks.find(function(x){return x.id===_drag.tid;});if(!task)return;if(_drag.side==='start'){var d=new Date(_drag.origStart+'T00:00:00');d.setDate(d.getDate()+dayShift);task.start_date=d.toISOString().split('T')[0];}else{var d=new Date(_drag.origEnd+'T00:00:00');d.setDate(d.getDate()+dayShift);task.end_date=d.toISOString().split('T')[0];}renderGantt();}
+async function endDrag(){if(!_drag)return;var task=allTasks.find(function(x){return x.id===_drag.tid;});document.removeEventListener('mousemove',onDrag);document.removeEventListener('mouseup',endDrag);if(task){try{await sb('gantt_tasks','id=eq.'+task.id,'PATCH',{start_date:task.start_date,end_date:task.end_date});}catch(e){console.error('Drag save err:',e);}}_drag=null;}
+function currentDayWidth(){return currentZoom==='day'?36:currentZoom==='week'?18:6;}
+
 // BAR CONTEXT MENU
 var _barMenuTaskId=null;
 function openBarMenu(evt,taskId){evt.stopPropagation();_barMenuTaskId=taskId;var m=document.getElementById('barMenu');m.style.display='block';m.style.left=evt.clientX+'px';m.style.top=evt.clientY+'px';}
