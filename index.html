@@ -3,1165 +3,1142 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Cannon Beach — Project Intelligence</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<title>Cannon Beach Surf Park — Intelligence Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
 :root {
-  --bg: #0f1117;
-  --surface: #181a22;
-  --surface2: #1f2230;
-  --border: #2a2d3a;
-  --text: #e4e5ea;
-  --text2: #9496a3;
-  --accent: #4a9eff;
-  --accent2: #2d7ad6;
-  --gold: #e6a730;
-  --sky: #5bbde6;
-  --teal: #2abba0;
-  --blue: #4a7aff;
-  --purple: #9b6dff;
-  --coral: #f06858;
-  --orange: #e88a3a;
-  --ltblue: #6cc4d0;
-  --green: #4aca7a;
-  --radius: 8px;
-  --font: 'DM Sans', -apple-system, sans-serif;
-  --mono: 'JetBrains Mono', monospace;
+  --bg-primary: #0a0f1a;
+  --bg-secondary: #111827;
+  --bg-card: #1a2235;
+  --bg-hover: #1e2a40;
+  --border: #2a3a52;
+  --border-light: #3a4a62;
+  --text-primary: #e8edf5;
+  --text-secondary: #8899b0;
+  --text-muted: #5a6a80;
+  --accent: #3b82f6;
+  --accent-dim: #2563eb;
+  --green: #22c55e;
+  --green-dim: rgba(34,197,94,0.15);
+  --red: #ef4444;
+  --red-dim: rgba(239,68,68,0.15);
+  --yellow: #eab308;
+  --yellow-dim: rgba(234,179,8,0.15);
+  --purple: #a855f7;
+  --purple-dim: rgba(168,85,247,0.15);
+  --orange: #f97316;
+  --orange-dim: rgba(249,115,22,0.15);
+  --cyan: #06b6d4;
+  --cyan-dim: rgba(6,182,212,0.15);
 }
 * { margin:0; padding:0; box-sizing:border-box; }
-body { font-family: var(--font); background: var(--bg); color: var(--text); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
-button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
-input, select, textarea { font-family: inherit; }
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+body {
+  font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  min-height: 100vh;
+}
 
 /* HEADER */
 .header {
-  display: flex; align-items: center; gap: 16px;
-  padding: 12px 20px; border-bottom: 1px solid var(--border);
-  background: var(--surface);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 24px; border-bottom: 1px solid var(--border); background: var(--bg-secondary);
 }
-.header .logo {
-  width: 36px; height: 36px; border-radius: 8px;
-  background: linear-gradient(135deg, var(--sky), var(--teal));
-  display: flex; align-items: center; justify-content: center;
-  font-weight: 700; font-size: 14px; color: #fff; flex-shrink: 0;
-}
-.header .title { font-size: 16px; font-weight: 600; }
-.header .subtitle { font-size: 11px; color: var(--text2); letter-spacing: 0.5px; text-transform: uppercase; }
-.header .spacer { flex: 1; }
-.search-box {
-  display: flex; align-items: center; gap: 8px;
-  background: var(--surface2); border: 1px solid var(--border);
-  border-radius: var(--radius); padding: 6px 12px; width: 260px;
-}
-.search-box input {
-  background: none; border: none; outline: none; color: var(--text);
-  font-size: 13px; width: 100%;
-}
-.search-box input::placeholder { color: var(--text2); }
-.btn-import {
-  background: var(--accent); color: #fff; padding: 7px 14px;
-  border-radius: var(--radius); font-size: 13px; font-weight: 500;
-  transition: background 0.15s;
-}
-.btn-import:hover { background: var(--accent2); }
+.header-left { display:flex; align-items:center; gap:16px; }
+.logo { font-size:14px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:var(--accent); }
+.logo span { color:var(--text-muted); font-weight:400; }
 .status-dot {
-  width: 8px; height: 8px; border-radius: 50%;
-  background: var(--green); flex-shrink: 0;
+  width:8px; height:8px; border-radius:50%; background:var(--red); transition:background 0.3s;
 }
-.status-text { font-size: 12px; color: var(--text2); }
-
-/* LAYOUT */
-.app-body { display: flex; flex: 1; overflow: hidden; }
-
-/* SIDEBAR */
-.sidebar {
-  width: 220px; border-right: 1px solid var(--border);
-  background: var(--surface); display: flex; flex-direction: column;
-  flex-shrink: 0;
+.status-dot.connected { background:var(--green); }
+.header-right { display:flex; align-items:center; gap:12px; }
+.badge {
+  font-size:11px; color:var(--text-muted); padding:4px 10px;
+  border:1px solid var(--border); border-radius:4px;
 }
-.nav-section { padding: 12px; }
-.nav-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--text2); margin-bottom: 8px; padding: 0 8px; }
-.nav-btn {
-  display: flex; align-items: center; gap: 10px;
-  padding: 8px 12px; border-radius: var(--radius);
-  font-size: 13px; font-weight: 500; width: 100%;
-  transition: background 0.12s; color: var(--text2);
+.settings-btn {
+  background:none; border:1px solid var(--border); color:var(--text-secondary);
+  padding:6px 12px; border-radius:4px; cursor:pointer; font-family:inherit; font-size:11px;
 }
-.nav-btn:hover { background: var(--surface2); color: var(--text); }
-.nav-btn.active { background: var(--accent); color: #fff; }
-.nav-btn .icon { font-size: 15px; width: 20px; text-align: center; }
-.nav-divider { height: 1px; background: var(--border); margin: 4px 12px; }
+.settings-btn:hover { border-color:var(--accent); color:var(--accent); }
 
-/* Category filters */
-.cat-section { padding: 8px 12px; flex: 1; overflow-y: auto; }
-.cat-btn {
-  display: flex; align-items: center; gap: 8px;
-  padding: 6px 10px; border-radius: 6px; font-size: 12px;
-  width: 100%; transition: background 0.12s; color: var(--text2);
+/* TABS */
+.tab-bar {
+  display:flex; border-bottom:1px solid var(--border); background:var(--bg-secondary); padding:0 24px;
 }
-.cat-btn:hover { background: var(--surface2); }
-.cat-btn.active { background: var(--surface2); color: var(--text); font-weight: 500; }
-.cat-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-.cat-count { margin-left: auto; font-size: 11px; font-family: var(--mono); color: var(--text2); }
+.tab {
+  padding:12px 20px; font-size:12px; font-family:inherit; color:var(--text-muted);
+  background:none; border:none; cursor:pointer; border-bottom:2px solid transparent;
+  letter-spacing:1px; text-transform:uppercase; transition:all 0.2s;
+}
+.tab:hover { color:var(--text-secondary); }
+.tab.active { color:var(--accent); border-bottom-color:var(--accent); }
 
-/* MAIN CONTENT */
-.main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+/* PANELS */
+.panel { display:none; height:calc(100vh - 105px); overflow:hidden; }
+.panel.active { display:flex; flex-direction:column; }
 
-/* Toolbar */
+/* TOOLBAR */
 .toolbar {
-  display: flex; align-items: center; gap: 8px;
-  padding: 10px 20px; border-bottom: 1px solid var(--border);
-  background: var(--surface);
+  display:flex; gap:8px; padding:12px 24px; border-bottom:1px solid var(--border);
+  flex-wrap:wrap; align-items:center;
 }
-.toolbar .view-title { font-size: 14px; font-weight: 600; }
-.toolbar .count { font-size: 12px; color: var(--text2); font-family: var(--mono); }
-.toolbar .spacer { flex: 1; }
-.sort-btn {
-  font-size: 12px; color: var(--text2); padding: 5px 10px;
-  border-radius: 6px; border: 1px solid var(--border);
-  transition: all 0.12s;
+.search-box {
+  flex:1; min-width:200px; background:var(--bg-card); border:1px solid var(--border);
+  border-radius:4px; color:var(--text-primary); padding:8px 12px; font-family:inherit; font-size:12px;
 }
-.sort-btn:hover, .sort-btn.active { border-color: var(--accent); color: var(--accent); }
+.search-box::placeholder { color:var(--text-muted); }
+.search-box:focus { outline:none; border-color:var(--accent); }
+select.tool-select, .toolbar input[type="date"] {
+  background:var(--bg-card); border:1px solid var(--border); border-radius:4px;
+  color:var(--text-primary); padding:8px 12px; font-family:inherit; font-size:12px;
+}
+select.tool-select:focus { outline:none; border-color:var(--accent); }
+.filter-btn {
+  background:var(--bg-card); border:1px solid var(--border); color:var(--text-secondary);
+  padding:8px 14px; border-radius:4px; cursor:pointer; font-family:inherit; font-size:11px;
+  transition:all 0.15s;
+}
+.filter-btn:hover { border-color:var(--text-secondary); }
+.filter-btn.active { border-color:var(--accent); color:var(--accent); background:rgba(59,130,246,0.1); }
+.btn {
+  padding:8px 16px; border-radius:4px; border:1px solid var(--border);
+  font-family:inherit; font-size:11px; cursor:pointer;
+  letter-spacing:0.5px; text-transform:uppercase; transition:all 0.15s;
+}
+.btn-primary { background:var(--accent); border-color:var(--accent); color:#fff; }
+.btn-primary:hover { background:var(--accent-dim); }
+.btn-secondary { background:var(--bg-card); color:var(--text-secondary); }
+.btn-secondary:hover { border-color:var(--text-secondary); }
+.btn-danger { background:var(--red-dim); border-color:var(--red); color:var(--red); }
+.btn-danger:hover { background:var(--red); color:#fff; }
 
-/* FEED VIEW */
-.feed-container { flex: 1; overflow-y: auto; padding: 16px 20px; }
-.email-card {
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: var(--radius); padding: 14px 16px; margin-bottom: 10px;
-  cursor: pointer; transition: border-color 0.15s, transform 0.1s;
+/* EMAIL LIST */
+.email-list { flex:1; overflow-y:auto; padding:8px; }
+.email-row {
+  display:grid; grid-template-columns:140px 1fr 120px 100px; gap:12px;
+  padding:10px 16px; border-bottom:1px solid var(--border); font-size:12px;
+  cursor:pointer; transition:background 0.15s; align-items:center;
 }
-.email-card:hover { border-color: var(--accent); transform: translateX(2px); }
-.email-card .ec-top { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
-.email-card .ec-org {
-  font-size: 11px; font-weight: 600; padding: 2px 8px;
-  border-radius: 4px; text-transform: uppercase; letter-spacing: 0.5px;
+.email-row:hover { background:var(--bg-hover); }
+.email-from { color:var(--text-primary); font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.email-subject { color:var(--text-secondary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.email-date { color:var(--text-muted); text-align:right; font-size:11px; }
+.email-cat {
+  font-size:10px; padding:2px 8px; border-radius:3px; text-align:center;
+  text-transform:uppercase; letter-spacing:0.5px; font-weight:600;
 }
-.email-card .ec-date { font-size: 11px; color: var(--text2); margin-left: auto; font-family: var(--mono); }
-.email-card .ec-subject { font-size: 14px; font-weight: 500; margin-bottom: 4px; }
-.email-card .ec-from { font-size: 12px; color: var(--text2); }
-.email-card .ec-snippet { font-size: 12px; color: var(--text2); margin-top: 6px; line-height: 1.5; }
 
-/* EMAIL DETAIL */
-.email-detail {
-  position: fixed; top: 0; right: -520px; width: 520px; height: 100vh;
-  background: var(--surface); border-left: 1px solid var(--border);
-  z-index: 100; transition: right 0.25s ease; display: flex; flex-direction: column;
-  box-shadow: -8px 0 30px rgba(0,0,0,0.4);
+/* GANTT */
+.gantt-body { display:flex; flex:1; overflow:hidden; }
+.gantt-sidebar {
+  width:320px; min-width:320px; border-right:1px solid var(--border);
+  overflow-y:auto; background:var(--bg-secondary);
 }
-.email-detail.open { right: 0; }
-.ed-header {
-  padding: 16px 20px; border-bottom: 1px solid var(--border);
-  display: flex; align-items: center; gap: 12px;
+.gantt-sidebar-header {
+  display:grid; grid-template-columns:1fr 80px 80px; padding:10px 16px;
+  font-size:10px; text-transform:uppercase; letter-spacing:1px; color:var(--text-muted);
+  border-bottom:1px solid var(--border); background:var(--bg-primary);
+  position:sticky; top:0; z-index:2;
 }
-.ed-close { font-size: 20px; color: var(--text2); padding: 4px; }
-.ed-close:hover { color: var(--text); }
-.ed-body { padding: 20px; flex: 1; overflow-y: auto; }
-.ed-field { margin-bottom: 12px; }
-.ed-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text2); margin-bottom: 4px; }
-.ed-value { font-size: 13px; line-height: 1.5; }
-.ed-message { font-size: 13px; line-height: 1.7; white-space: pre-wrap; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); }
+.gantt-task-row {
+  display:grid; grid-template-columns:1fr 80px 80px; padding:8px 16px;
+  font-size:11px; border-bottom:1px solid var(--border); cursor:pointer;
+  transition:background 0.15s; align-items:center; height:36px;
+}
+.gantt-task-row:hover { background:var(--bg-hover); }
+.gantt-task-name {
+  display:flex; align-items:center; gap:6px;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.cat-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+.gantt-task-date { color:var(--text-muted); font-size:10px; }
+.gantt-timeline { flex:1; overflow-x:auto; overflow-y:auto; position:relative; }
+.gantt-timeline-header {
+  position:sticky; top:0; z-index:2; background:var(--bg-primary);
+  border-bottom:1px solid var(--border); display:flex; height:36px; min-width:fit-content;
+}
+.gantt-col-header {
+  font-size:10px; color:var(--text-muted); text-align:center;
+  border-right:1px solid var(--border); display:flex; align-items:center;
+  justify-content:center; letter-spacing:0.5px;
+}
+.gantt-rows { position:relative; min-width:fit-content; }
+.gantt-row-bg {
+  height:36px; border-bottom:1px solid var(--border); display:flex;
+}
+.gantt-row-bg:nth-child(even) { background:rgba(255,255,255,0.01); }
+.col-cell { border-right:1px solid var(--border); height:100%; }
+.gantt-bar {
+  position:absolute; height:20px; border-radius:3px; top:8px; cursor:pointer;
+  transition:filter 0.15s; display:flex; align-items:center; padding:0 6px;
+  font-size:9px; color:#fff; font-weight:600; letter-spacing:0.3px;
+  overflow:hidden; white-space:nowrap; text-overflow:ellipsis; min-width:4px;
+}
+.gantt-bar:hover { filter:brightness(1.2); }
+.gantt-milestone-marker {
+  position:absolute; width:14px; height:14px; transform:rotate(45deg);
+  top:11px; margin-left:-7px; cursor:pointer; transition:filter 0.15s;
+}
+.gantt-milestone-marker:hover { filter:brightness(1.3); }
+.gantt-today-line {
+  position:absolute; top:0; bottom:0; width:2px; background:var(--red);
+  z-index:1; pointer-events:none;
+}
+.gantt-today-label {
+  position:absolute; top:-18px; font-size:9px; color:var(--red);
+  transform:translateX(-50%); white-space:nowrap;
+}
+.gantt-empty {
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  height:100%; color:var(--text-muted); font-size:13px; gap:16px; text-align:center; padding:40px;
+}
 
-/* THREAD VIEW */
-.thread-group { margin-bottom: 20px; }
-.thread-header {
-  font-size: 14px; font-weight: 600; padding: 10px 16px;
-  background: var(--surface2); border-radius: var(--radius);
-  cursor: pointer; display: flex; align-items: center; gap: 10px;
+/* IMPORT */
+.import-container {
+  display:grid; grid-template-columns:1fr 1fr; gap:24px;
+  padding:24px; overflow-y:auto; flex:1;
 }
-.thread-header:hover { background: var(--border); }
-.thread-header .arrow { transition: transform 0.2s; }
-.thread-header.expanded .arrow { transform: rotate(90deg); }
-.thread-count { font-size: 11px; color: var(--text2); font-family: var(--mono); margin-left: auto; }
-.thread-messages { padding-left: 20px; }
-
-/* TIMELINE VIEW */
-.timeline-container { flex: 1; overflow-y: auto; padding: 20px; }
-.tl-month { margin-bottom: 24px; }
-.tl-month-label {
-  font-size: 13px; font-weight: 700; text-transform: uppercase;
-  letter-spacing: 1px; color: var(--accent); margin-bottom: 12px;
-  padding-bottom: 6px; border-bottom: 1px solid var(--border);
+@media(max-width:900px) { .import-container { grid-template-columns:1fr; } }
+.import-card {
+  background:var(--bg-card); border:1px solid var(--border);
+  border-radius:8px; padding:24px;
 }
-.tl-day { margin-bottom: 8px; }
-.tl-day-label { font-size: 11px; color: var(--text2); font-family: var(--mono); margin-bottom: 4px; }
-.tl-item {
-  display: flex; align-items: center; gap: 10px; padding: 6px 10px;
-  border-radius: 6px; cursor: pointer; font-size: 12px;
+.import-card h3 {
+  font-size:13px; text-transform:uppercase; letter-spacing:1px;
+  color:var(--accent); margin-bottom:8px;
 }
-.tl-item:hover { background: var(--surface2); }
-
-/* DASHBOARD VIEW */
-.dashboard-container { flex: 1; overflow-y: auto; padding: 20px; }
-.dash-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 20px; }
-.dash-card {
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: var(--radius); padding: 20px;
-}
-.dash-card .dc-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text2); margin-bottom: 8px; }
-.dash-card .dc-value { font-size: 28px; font-weight: 700; font-family: var(--mono); }
-.dash-bar-group { margin-top: 12px; }
-.dash-bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
-.dash-bar-label { font-size: 11px; width: 120px; color: var(--text2); flex-shrink: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.dash-bar { height: 6px; border-radius: 3px; transition: width 0.5s ease; }
-.dash-bar-count { font-size: 11px; color: var(--text2); font-family: var(--mono); width: 36px; text-align: right; flex-shrink: 0; }
-
-/* CONFLICTS VIEW */
-.conflicts-container { flex: 1; overflow-y: auto; padding: 20px; }
-.conflict-card {
-  background: var(--surface); border: 1px solid var(--coral);
-  border-radius: var(--radius); padding: 16px; margin-bottom: 12px;
-  cursor: pointer;
-}
-.conflict-card:hover { border-color: #ff8070; }
-.conflict-card .cc-type { font-size: 11px; font-weight: 600; color: var(--coral); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
-.conflict-card .cc-desc { font-size: 13px; line-height: 1.5; }
-
-/* LOADING / EMPTY */
-.loading-state {
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  flex: 1; gap: 16px; color: var(--text2);
-}
-.spinner {
-  width: 32px; height: 32px; border: 3px solid var(--border);
-  border-top-color: var(--accent); border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
-.empty-state { text-align: center; padding: 60px 20px; color: var(--text2); }
-.empty-state .big-icon { font-size: 48px; margin-bottom: 12px; }
-
-/* IMPORT MODAL */
-.modal-overlay {
-  position: fixed; inset: 0; background: rgba(0,0,0,0.6);
-  z-index: 200; display: none; align-items: center; justify-content: center;
-}
-.modal-overlay.open { display: flex; }
-.modal {
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: 12px; width: 560px; max-height: 85vh; overflow-y: auto;
-  padding: 24px;
-}
-.modal h2 { font-size: 18px; font-weight: 600; margin-bottom: 8px; }
-.modal p { font-size: 13px; color: var(--text2); margin-bottom: 16px; line-height: 1.5; }
-.modal .tabs { display: flex; gap: 4px; margin-bottom: 16px; }
-.modal .tab-btn {
-  padding: 8px 14px; border-radius: 6px; font-size: 12px; font-weight: 500;
-  background: var(--surface2); color: var(--text2); transition: all 0.12s;
-}
-.modal .tab-btn.active { background: var(--accent); color: #fff; }
+.import-card p { font-size:12px; color:var(--text-secondary); margin-bottom:16px; line-height:1.6; }
 .drop-zone {
-  border: 2px dashed var(--border); border-radius: var(--radius);
-  padding: 40px; text-align: center; color: var(--text2); font-size: 13px;
-  cursor: pointer; transition: border-color 0.15s;
+  border:2px dashed var(--border); border-radius:6px; padding:32px; text-align:center;
+  color:var(--text-muted); font-size:12px; cursor:pointer; transition:all 0.2s;
 }
-.drop-zone:hover, .drop-zone.dragover { border-color: var(--accent); }
-.drop-zone input { display: none; }
-.modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
-.btn-secondary {
-  padding: 8px 16px; border-radius: var(--radius); font-size: 13px;
-  background: var(--surface2); color: var(--text2);
+.drop-zone:hover, .drop-zone.dragover {
+  border-color:var(--accent); color:var(--accent); background:rgba(59,130,246,0.05);
 }
-.btn-secondary:hover { background: var(--border); color: var(--text); }
+.drop-zone input[type="file"] { display:none; }
+textarea.import-textarea {
+  width:100%; min-height:120px; background:var(--bg-primary); border:1px solid var(--border);
+  border-radius:4px; color:var(--text-primary); padding:12px; font-family:inherit; font-size:12px; resize:vertical;
+}
+textarea.import-textarea:focus { outline:none; border-color:var(--accent); }
 
-/* Import tab panels */
-.import-panel { display: none; }
-.import-panel.active { display: block; }
-.paste-area {
-  width: 100%; min-height: 120px; background: var(--surface2);
-  border: 1px solid var(--border); border-radius: var(--radius);
-  color: var(--text); padding: 12px; font-size: 12px; resize: vertical;
+/* MODAL */
+.modal-overlay {
+  display:none; position:fixed; top:0;left:0;right:0;bottom:0;
+  background:rgba(0,0,0,0.7); z-index:100; align-items:center; justify-content:center;
 }
-.paste-area::placeholder { color: var(--text2); }
-.paste-row { display: flex; gap: 8px; margin-bottom: 8px; }
-.paste-input {
-  flex: 1; background: var(--surface2); border: 1px solid var(--border);
-  border-radius: 6px; color: var(--text); padding: 8px 10px; font-size: 12px;
+.modal-overlay.active { display:flex; }
+.modal {
+  background:var(--bg-card); border:1px solid var(--border); border-radius:8px;
+  padding:28px; width:480px; max-width:95vw; max-height:90vh; overflow-y:auto;
 }
-.paste-input::placeholder { color: var(--text2); }
-.btn-primary {
-  background: var(--accent); color: #fff; padding: 8px 16px;
-  border-radius: var(--radius); font-size: 13px; font-weight: 500;
+.modal h2 {
+  font-size:14px; text-transform:uppercase; letter-spacing:1.5px;
+  color:var(--accent); margin-bottom:20px;
 }
-.btn-primary:hover { background: var(--accent2); }
-.help-steps { margin-top: 12px; }
-.help-step {
-  display: flex; gap: 10px; margin-bottom: 10px; font-size: 12px; color: var(--text2); line-height: 1.5;
+.form-group { margin-bottom:14px; }
+.form-group label {
+  display:block; font-size:10px; text-transform:uppercase; letter-spacing:1px;
+  color:var(--text-muted); margin-bottom:4px;
 }
-.help-step .step-num {
-  width: 22px; height: 22px; border-radius: 50%; background: var(--accent);
-  color: #fff; display: flex; align-items: center; justify-content: center;
-  font-size: 11px; font-weight: 600; flex-shrink: 0;
+.form-group input, .form-group select, .form-group textarea {
+  width:100%; background:var(--bg-primary); border:1px solid var(--border); border-radius:4px;
+  color:var(--text-primary); padding:8px 12px; font-family:inherit; font-size:12px;
 }
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline:none; border-color:var(--accent); }
+.form-actions { display:flex; gap:8px; justify-content:flex-end; margin-top:20px; }
+.email-detail { line-height:1.7; }
+.email-detail .meta { font-size:11px; color:var(--text-muted); margin-bottom:12px; }
+.email-detail .meta strong { color:var(--text-secondary); }
+.email-detail .body-text {
+  font-size:12px; color:var(--text-secondary); white-space:pre-wrap;
+  margin-top:12px; border-top:1px solid var(--border); padding-top:12px;
+}
+.extract-progress {
+  margin-top:12px; padding:12px; background:var(--bg-primary);
+  border:1px solid var(--border); border-radius:4px; font-size:11px;
+  color:var(--text-secondary); max-height:200px; overflow-y:auto;
+}
+.log-line { margin-bottom:4px; }
+.log-line.ok { color:var(--green); }
+.log-line.err { color:var(--red); }
+.ai-status {
+  font-size:11px; padding:6px 12px; border-radius:4px;
+  display:inline-flex; align-items:center; gap:6px;
+}
+.ai-status.ready { background:var(--green-dim); color:var(--green); }
+.ai-status.off { background:var(--bg-card); color:var(--text-muted); border:1px solid var(--border); }
 
 /* TOAST */
+.toast-container {
+  position:fixed; bottom:20px; right:20px; z-index:200;
+  display:flex; flex-direction:column; gap:8px;
+}
 .toast {
-  position: fixed; bottom: 20px; right: 20px;
-  background: var(--surface2); border: 1px solid var(--border);
-  padding: 12px 20px; border-radius: var(--radius);
-  font-size: 13px; z-index: 300;
-  transform: translateY(80px); opacity: 0;
-  transition: all 0.25s ease;
+  padding:12px 20px; border-radius:6px; font-size:12px;
+  font-family:inherit; animation:slideIn 0.3s ease; border:1px solid var(--border);
 }
-.toast.show { transform: translateY(0); opacity: 1; }
+.toast.success { background:var(--green-dim); color:var(--green); border-color:var(--green); }
+.toast.error { background:var(--red-dim); color:var(--red); border-color:var(--red); }
+.toast.info { background:rgba(59,130,246,0.15); color:var(--accent); border-color:var(--accent); }
+@keyframes slideIn { from{transform:translateX(100px);opacity:0} to{transform:translateX(0);opacity:1} }
 
-/* RESPONSIVE */
-@media (max-width: 768px) {
-  .sidebar { width: 56px; }
-  .sidebar .nav-label, .sidebar .cat-section, .sidebar .nav-btn span:not(.icon) { display: none; }
-  .search-box { width: 160px; }
-  .email-detail { width: 100%; right: -100%; }
-}
+/* SCROLLBAR */
+::-webkit-scrollbar { width:6px; height:6px; }
+::-webkit-scrollbar-track { background:var(--bg-primary); }
+::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
+::-webkit-scrollbar-thumb:hover { background:var(--border-light); }
 </style>
 </head>
 <body>
 
 <!-- HEADER -->
 <div class="header">
-  <div class="logo">CB</div>
-  <div>
-    <div class="title">Cannon Beach</div>
-    <div class="subtitle">McKinney, TX &mdash; Project Intelligence</div>
+  <div class="header-left">
+    <div class="logo">Cannon Beach <span>Intelligence</span></div>
+    <div class="status-dot" id="statusDot" title="Connecting..."></div>
   </div>
-  <div class="spacer"></div>
-  <div class="search-box">
-    <span style="color:var(--text2)">&#x2315;</span>
-    <input type="text" id="searchInput" placeholder="Search emails... (Ctrl+K)" oninput="handleSearch()">
-  </div>
-  <button class="btn-import" onclick="openModal()">&#x2295; Import</button>
-  <div style="display:flex;align-items:center;gap:6px;margin-left:12px;">
-    <div class="status-dot" id="statusDot"></div>
-    <span class="status-text" id="statusText">Connecting...</span>
+  <div class="header-right">
+    <div class="badge" id="emailCount">-- emails</div>
+    <div class="badge" id="taskCount">-- tasks</div>
+    <button class="settings-btn" onclick="openSettings()">Settings</button>
   </div>
 </div>
 
-<!-- BODY -->
-<div class="app-body">
+<!-- TABS -->
+<div class="tab-bar">
+  <button class="tab active" data-tab="emails" onclick="switchTab('emails')">Emails</button>
+  <button class="tab" data-tab="gantt" onclick="switchTab('gantt')">Gantt Chart</button>
+  <button class="tab" data-tab="import" onclick="switchTab('import')">Import</button>
+</div>
 
-  <!-- SIDEBAR -->
-  <div class="sidebar">
-    <div class="nav-section">
-      <div class="nav-label">Views</div>
-      <button class="nav-btn active" data-view="feed" onclick="switchView('feed')">
-        <span class="icon">&#x2709;</span> <span>Feed</span>
-      </button>
-      <button class="nav-btn" data-view="threads" onclick="switchView('threads')">
-        <span class="icon">&#x1F9F5;</span> <span>Threads</span>
-      </button>
-      <button class="nav-btn" data-view="timeline" onclick="switchView('timeline')">
-        <span class="icon">&#x1F4C5;</span> <span>Timeline</span>
-      </button>
-      <button class="nav-btn" data-view="dashboard" onclick="switchView('dashboard')">
-        <span class="icon">&#x1F4CA;</span> <span>Dashboard</span>
-      </button>
-      <button class="nav-btn" data-view="conflicts" onclick="switchView('conflicts')">
-        <span class="icon">&#x26A0;</span> <span>Conflicts</span>
-      </button>
-    </div>
-    <div class="nav-divider"></div>
-    <div class="nav-label" style="padding:8px 20px 0;">Categories</div>
-    <div class="cat-section" id="catFilters"></div>
+<!-- EMAIL PANEL -->
+<div class="panel active" id="panel-emails">
+  <div class="toolbar">
+    <input class="search-box" id="emailSearch" type="text" placeholder="Search emails by sender, subject, body...">
+    <button class="filter-btn" data-cat="all" onclick="filterEmails('all',this)">All</button>
+    <button class="filter-btn" data-cat="schedule" onclick="filterEmails('schedule',this)">Schedule</button>
+    <button class="filter-btn" data-cat="permitting" onclick="filterEmails('permitting',this)">Permitting</button>
+    <button class="filter-btn" data-cat="design" onclick="filterEmails('design',this)">Design</button>
+    <button class="filter-btn" data-cat="construction" onclick="filterEmails('construction',this)">Construction</button>
+    <button class="filter-btn" data-cat="legal" onclick="filterEmails('legal',this)">Legal</button>
+    <button class="filter-btn" data-cat="finance" onclick="filterEmails('finance',this)">Finance</button>
   </div>
+  <div class="email-list" id="emailList"></div>
+</div>
 
-  <!-- MAIN -->
-  <div class="main">
+<!-- GANTT PANEL -->
+<div class="panel" id="panel-gantt">
+  <div style="display:flex;flex-direction:column;height:100%">
     <div class="toolbar">
-      <span class="view-title" id="viewTitle">Feed</span>
-      <span class="count" id="emailCount"></span>
-      <div class="spacer"></div>
-      <button class="sort-btn active" data-sort="newest" onclick="setSort('newest')">Newest</button>
-      <button class="sort-btn" data-sort="org" onclick="setSort('org')">By Org</button>
+      <select class="tool-select" id="ganttCatFilter" onchange="renderGantt()">
+        <option value="all">All Categories</option>
+        <option value="permitting">Permitting</option>
+        <option value="design">Design</option>
+        <option value="construction">Construction</option>
+        <option value="legal">Legal</option>
+        <option value="finance">Finance</option>
+        <option value="meetings">Meetings</option>
+        <option value="other">Other</option>
+      </select>
+      <select class="tool-select" id="ganttAssignFilter" onchange="renderGantt()">
+        <option value="all">All Assignees</option>
+      </select>
+      <select class="tool-select" id="ganttZoom" onchange="renderGantt()">
+        <option value="week">Week View</option>
+        <option value="month" selected>Month View</option>
+        <option value="quarter">Quarter View</option>
+      </select>
+      <button class="btn btn-primary" onclick="openTaskModal()">+ Add Task</button>
+      <button class="btn btn-secondary" onclick="openExtractModal()">AI Extract</button>
+      <button class="btn btn-secondary" onclick="openScheduleUpload()">Upload Schedule</button>
     </div>
-    <div id="viewFeed" class="feed-container"></div>
-    <div id="viewThreads" class="feed-container" style="display:none"></div>
-    <div id="viewTimeline" class="timeline-container" style="display:none"></div>
-    <div id="viewDashboard" class="dashboard-container" style="display:none"></div>
-    <div id="viewConflicts" class="conflicts-container" style="display:none"></div>
-    <div class="loading-state" id="loadingState">
-      <div class="spinner"></div>
-      <div>Loading from Supabase...</div>
+    <div class="gantt-body" id="ganttBody">
+      <div class="gantt-empty" id="ganttEmpty">
+        <div style="font-size:18px;margin-bottom:4px">No tasks yet</div>
+        <div style="font-size:11px;max-width:360px">Add tasks manually, extract from your schedule-relevant emails using AI, or upload a schedule file (Excel, CSV, Word, PDF).</div>
+      </div>
     </div>
   </div>
 </div>
 
-<!-- EMAIL DETAIL PANEL -->
-<div class="email-detail" id="emailDetail">
-  <div class="ed-header">
-    <button class="ed-close" onclick="closeDetail()">&times;</button>
-    <span id="edSubject" style="font-weight:600;font-size:15px;"></span>
-  </div>
-  <div class="ed-body">
-    <div class="ed-field"><div class="ed-label">From</div><div class="ed-value" id="edFrom"></div></div>
-    <div class="ed-field"><div class="ed-label">To</div><div class="ed-value" id="edTo"></div></div>
-    <div class="ed-field"><div class="ed-label">Date</div><div class="ed-value" id="edDate"></div></div>
-    <div class="ed-field"><div class="ed-label">Organization</div><div class="ed-value" id="edOrg"></div></div>
-    <div class="ed-message" id="edMessage"></div>
+<!-- IMPORT PANEL -->
+<div class="panel" id="panel-import">
+  <div class="import-container">
+    <div class="import-card">
+      <h3>CSV Email Import</h3>
+      <p>Bulk import emails from a CSV file. Columns should map to: from name, from email, subject, body_preview, date, category, etc.</p>
+      <div class="drop-zone" id="csvDropZone" onclick="document.getElementById('csvFileInput').click()">
+        Drop CSV here or click to browse
+        <input type="file" id="csvFileInput" accept=".csv" onchange="handleCsvImport(this.files[0])">
+      </div>
+    </div>
+    <div class="import-card">
+      <h3>.EML / .MSG Import</h3>
+      <p>Drag and drop .eml email files to parse and import them into the dashboard.</p>
+      <div class="drop-zone" id="emlDropZone">Drop .eml files here</div>
+    </div>
+    <div class="import-card">
+      <h3>Schedule File Import</h3>
+      <p>Upload Excel (.xlsx), CSV, Word (.docx), or PDF schedule files. Structured files (Excel/CSV with Task/Start/End columns) import directly. Unstructured files use AI extraction.</p>
+      <div class="drop-zone" id="scheduleDropZone" onclick="document.getElementById('schedFileInput').click()">
+        Drop schedule files here (.xlsx, .csv, .docx, .pdf)
+        <input type="file" id="schedFileInput" accept=".xlsx,.csv,.docx,.pdf,.doc" onchange="handleScheduleFile(this.files[0])">
+      </div>
+      <div class="extract-progress" id="scheduleProgress" style="display:none"></div>
+    </div>
+    <div class="import-card">
+      <h3>Manual Email Paste</h3>
+      <p>Paste email content as CSV rows (one per line). Format: from_name, from_email, subject, body, date, category</p>
+      <textarea class="import-textarea" id="manualPaste" placeholder="John Doe, john@example.com, Meeting Notes, Body text here, 2025-03-15, meetings"></textarea>
+      <div style="margin-top:12px"><button class="btn btn-primary" onclick="handleManualPaste()">Import Rows</button></div>
+      <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border)">
+        <h3 style="margin-bottom:8px">PST File Guide</h3>
+        <p>Outlook PST files cannot be parsed in the browser. To import: open the PST in Outlook, go to File, Open and Export, Import/Export, then export to CSV. Upload the CSV using the card above.</p>
+      </div>
+    </div>
   </div>
 </div>
 
-<!-- IMPORT MODAL -->
-<div class="modal-overlay" id="importModal">
+<!-- TASK MODAL -->
+<div class="modal-overlay" id="taskModal">
   <div class="modal">
-    <h2>Import Emails</h2>
-    <p>Add emails from Outlook. New emails merge with existing data &mdash; no duplicates.</p>
-    <div class="tabs">
-      <button class="tab-btn active" onclick="switchImportTab('csv')">CSV Export</button>
-      <button class="tab-btn" onclick="switchImportTab('msg')">Drag &amp; Drop (.eml)</button>
-      <button class="tab-btn" onclick="switchImportTab('paste')">Paste Email</button>
-      <button class="tab-btn" onclick="switchImportTab('pst')">PST File</button>
+    <h2 id="taskModalTitle">Add Task</h2>
+    <input type="hidden" id="taskEditId">
+    <div class="form-group">
+      <label>Task Name</label>
+      <input type="text" id="taskName" placeholder="e.g. Submit site plan to McKinney Planning">
     </div>
-
-    <!-- CSV TAB -->
-    <div class="import-panel active" id="tab-csv">
-      <div class="drop-zone" id="dropCSV" onclick="document.getElementById('csvFile').click()">
-        <div style="font-size:28px;margin-bottom:8px;">&#x1F4C4;</div>
-        <div>Drop Outlook CSV here or click to browse</div>
-        <div style="font-size:11px;margin-top:6px;color:var(--text2)">File &rarr; Open &amp; Export &rarr; Import/Export &rarr; CSV</div>
-        <input type="file" id="csvFile" accept=".csv" onchange="handleCSV(event)">
-      </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="form-group"><label>Start Date</label><input type="date" id="taskStart"></div>
+      <div class="form-group"><label>End Date</label><input type="date" id="taskEnd"></div>
     </div>
-
-    <!-- MSG / EML TAB -->
-    <div class="import-panel" id="tab-msg">
-      <div class="drop-zone" id="dropEML">
-        <div style="font-size:28px;margin-bottom:8px;">&#x2709;&#xFE0F;</div>
-        <div>Drag an email from Outlook to your Desktop first</div>
-        <div style="font-size:11px;margin-top:8px;color:var(--text2)">It saves as a .eml or .msg file. Then drag that file here.</div>
-        <div style="font-size:11px;margin-top:4px;color:var(--text2)">.eml files are fully supported. .msg files are read as plain text (some formatting may be lost).</div>
-        <input type="file" id="emlFile" accept=".eml,.msg,.mhtml" style="display:none" onchange="handleEML(event)">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="form-group">
+        <label>Category</label>
+        <select id="taskCategory">
+          <option value="permitting">Permitting</option>
+          <option value="design">Design</option>
+          <option value="construction">Construction</option>
+          <option value="legal">Legal</option>
+          <option value="finance">Finance</option>
+          <option value="meetings">Meetings</option>
+          <option value="other">Other</option>
+        </select>
       </div>
-    </div>
-
-    <!-- PASTE TAB -->
-    <div class="import-panel" id="tab-paste">
-      <div class="paste-row">
-        <input class="paste-input" id="pasteFrom" placeholder="From (name or email)">
-        <input class="paste-input" id="pasteDate" placeholder="Date (e.g. 3/20/2026)">
-      </div>
-      <div class="paste-row">
-        <input class="paste-input" id="pasteTo" placeholder="To">
-        <input class="paste-input" id="pasteOrg" placeholder="Organization (optional)">
-      </div>
-      <input class="paste-input" id="pasteSubject" placeholder="Subject" style="width:100%;margin-bottom:8px;">
-      <textarea class="paste-area" id="pasteBody" placeholder="Paste the email body here..."></textarea>
-      <div style="margin-top:8px;">
-        <button class="btn-primary" onclick="handlePaste()">Add Email</button>
+      <div class="form-group">
+        <label>Assigned To</label>
+        <input type="text" id="taskAssign" placeholder="e.g. Sam, Bret, Jake">
       </div>
     </div>
-
-    <!-- PST TAB -->
-    <div class="import-panel" id="tab-pst">
-      <div style="background:var(--surface2);border-radius:var(--radius);padding:20px;">
-        <div style="font-size:14px;font-weight:600;margin-bottom:12px;">.pst files can't be read directly in a browser</div>
-        <div style="font-size:13px;color:var(--text2);margin-bottom:16px;">The quickest path is to export your emails to CSV in Outlook, then use the CSV tab above.</div>
-        <div class="help-steps">
-          <div class="help-step"><span class="step-num">1</span><span>In Outlook, go to <strong style="color:var(--text)">File &rarr; Open &amp; Export &rarr; Import/Export</strong></span></div>
-          <div class="help-step"><span class="step-num">2</span><span>Choose <strong style="color:var(--text)">Export to a File &rarr; Comma Separated Values (.csv)</strong></span></div>
-          <div class="help-step"><span class="step-num">3</span><span>Select the <strong style="color:var(--text)">folder or mailbox</strong> you want (e.g. Cannon Beach inbox)</span></div>
-          <div class="help-step"><span class="step-num">4</span><span>Save the .csv, then switch to the <strong style="color:var(--text)">CSV Export</strong> tab to import it</span></div>
-        </div>
-        <div style="font-size:12px;color:var(--text2);margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
-          <strong style="color:var(--text)">Single emails:</strong> Drag any email from Outlook to your Desktop (saves as .eml), then use the <strong style="color:var(--text)">Drag &amp; Drop</strong> tab.
-        </div>
-      </div>
+    <div class="form-group">
+      <label style="display:inline-flex;align-items:center;gap:6px">
+        <input type="checkbox" id="taskMilestone" style="width:auto"> Milestone (single date)
+      </label>
     </div>
-
-    <div id="importStatus" style="margin-top:12px;font-size:13px;color:var(--text2);"></div>
-    <div class="modal-actions">
-      <button class="btn-secondary" onclick="closeModal()">Close</button>
+    <div class="form-group"><label>Notes</label><textarea id="taskNotes" rows="3" placeholder="Optional notes..."></textarea></div>
+    <div class="form-actions">
+      <button class="btn btn-secondary" onclick="closeModal('taskModal')">Cancel</button>
+      <button class="btn btn-danger" id="taskDeleteBtn" style="display:none" onclick="deleteTask()">Delete</button>
+      <button class="btn btn-primary" onclick="saveTask()">Save Task</button>
     </div>
   </div>
 </div>
 
-<!-- TOAST -->
-<div class="toast" id="toast"></div>
+<!-- EMAIL DETAIL MODAL -->
+<div class="modal-overlay" id="emailModal">
+  <div class="modal" style="width:600px">
+    <h2 id="emailModalSubject">Email</h2>
+    <div class="email-detail" id="emailModalBody"></div>
+    <div class="form-actions">
+      <button class="btn btn-secondary" onclick="closeModal('emailModal')">Close</button>
+      <button class="btn btn-primary" onclick="extractFromCurrentEmail()">Extract Tasks</button>
+    </div>
+  </div>
+</div>
+
+<!-- AI EXTRACT MODAL -->
+<div class="modal-overlay" id="extractModal">
+  <div class="modal" style="width:560px">
+    <h2>AI Schedule Extraction</h2>
+    <p style="font-size:12px;color:var(--text-secondary);margin-bottom:16px;line-height:1.6">
+      Sends your schedule-relevant emails to Claude to extract dates, milestones, and tasks automatically.
+      Requires an Anthropic API key (set in Settings).
+    </p>
+    <div id="aiStatusDisplay" style="margin-bottom:16px"></div>
+    <div class="form-group">
+      <label>Scope</label>
+      <select id="extractScope">
+        <option value="schedule">Schedule-relevant emails only</option>
+        <option value="all">All emails</option>
+      </select>
+    </div>
+    <div class="extract-progress" id="extractProgress" style="display:none"></div>
+    <div class="form-actions">
+      <button class="btn btn-secondary" onclick="closeModal('extractModal')">Close</button>
+      <button class="btn btn-primary" id="extractStartBtn" onclick="runAiExtract()">Start Extraction</button>
+    </div>
+  </div>
+</div>
+
+<!-- SETTINGS MODAL -->
+<div class="modal-overlay" id="settingsModal">
+  <div class="modal">
+    <h2>Settings</h2>
+    <div class="form-group"><label>Supabase URL</label><input type="text" id="setSupabaseUrl"></div>
+    <div class="form-group"><label>Supabase Anon Key</label><input type="text" id="setSupabaseKey"></div>
+    <div class="form-group" style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border)">
+      <label>Anthropic API Key (optional, for AI extraction)</label>
+      <input type="password" id="setAnthropicKey" placeholder="sk-ant-...">
+      <p style="font-size:10px;color:var(--text-muted);margin-top:4px">Stored in browser session only. Never saved to Supabase.</p>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-secondary" onclick="closeModal('settingsModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveSettings()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- SCHEDULE UPLOAD MODAL -->
+<div class="modal-overlay" id="schedUploadModal">
+  <div class="modal" style="width:560px">
+    <h2>Upload Schedule File</h2>
+    <p style="font-size:12px;color:var(--text-secondary);margin-bottom:16px;line-height:1.6">
+      Upload an Excel, CSV, Word, or PDF schedule. Structured files parse directly.
+      Unstructured files use AI extraction via your Anthropic API key.
+    </p>
+    <div class="drop-zone" onclick="document.getElementById('schedModalFileInput').click()" style="margin-bottom:16px">
+      Drop schedule file here or click to browse
+      <input type="file" id="schedModalFileInput" accept=".xlsx,.csv,.docx,.pdf,.doc" onchange="handleScheduleFile(this.files[0]);closeModal('schedUploadModal')" style="display:none">
+    </div>
+    <div class="form-actions"><button class="btn btn-secondary" onclick="closeModal('schedUploadModal')">Close</button></div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
 
 <script>
-// ========== SUPABASE CONFIG ==========
-const SUPABASE_URL = 'https://sncfdhzxekzuimmjxoqn.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNuY2ZkaHp4ZWt6dWltbWp4b3FuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQwNDM1NzcsImV4cCI6MjA4OTYxOTU3N30.TnJ8vju57YVh_CaI_Yz5eOsgxggUMw4go3_DjnNFff8';
+// ====== CONFIG ======
+const DEFAULT_SB_URL = 'https://sncfdhzxekzuimmjxoqn.supabase.co';
+let SB_URL = localStorage.getItem('cb_sb_url') || DEFAULT_SB_URL;
+let SB_KEY = localStorage.getItem('cb_sb_key') || '';
+let AI_KEY = sessionStorage.getItem('cb_ai_key') || '';
+let allEmails = [], allTasks = [], emailFilter = 'all', currentEmail = null;
 
-// ========== CATEGORIES ==========
-const CATEGORIES = [
-  { id: 'all', label: 'All emails', color: 'var(--text2)' },
-  { id: 'City of McKinney', label: 'City of McKinney', color: 'var(--sky)' },
-  { id: 'Client', label: 'Client', color: 'var(--gold)' },
-  { id: 'Civil Engineering', label: 'Civil Engineering', color: 'var(--teal)' },
-  { id: 'Design Consultant', label: 'Design Consultant', color: 'var(--purple)' },
-  { id: 'GC / Site Dev', label: 'GC / Site Dev', color: 'var(--coral)' },
-  { id: 'Specialty', label: 'Specialty', color: 'var(--ltblue)' },
-  { id: 'Utilities', label: 'Utilities', color: 'var(--orange)' },
-  { id: 'Internal', label: 'Internal', color: 'var(--blue)' },
-];
-
-// ========== STATE ==========
-let allEmails = [];
-let filteredEmails = [];
-let currentView = 'feed';
-let currentCat = 'all';
-let currentSort = 'newest';
-let searchQuery = '';
-
-// ========== SUPABASE FETCH ==========
-async function sbFetch(path, opts = {}) {
-  const url = `${SUPABASE_URL}/rest/v1/${path}`;
-  const headers = {
-    'apikey': SUPABASE_KEY,
-    'Authorization': `Bearer ${SUPABASE_KEY}`,
-    'Content-Type': 'application/json',
-    'Prefer': opts.prefer || 'return=minimal',
-    ...opts.headers,
-  };
-  const res = await fetch(url, { method: opts.method || 'GET', headers, body: opts.body });
-  if (!res.ok) {
-    const errText = await res.text().catch(() => '');
-    throw new Error(`Supabase ${res.status}: ${errText}`);
-  }
-  if (opts.method === 'POST' || opts.method === 'PATCH') return res;
-  return res.json();
+// ====== UTILS ======
+function toast(msg, type='info') {
+  const c = document.getElementById('toastContainer');
+  const t = document.createElement('div');
+  t.className = 'toast ' + type;
+  t.textContent = msg;
+  c.appendChild(t);
+  setTimeout(() => t.remove(), 4000);
 }
-
-async function loadFromSupabase() {
-  try {
-    setStatus('loading');
-    let all = [];
-    let offset = 0;
-    const limit = 1000;
-    while (true) {
-      const batch = await sbFetch(
-        `emails?select=*&order=date_parsed.desc.nullslast&offset=${offset}&limit=${limit}`
-      );
-      if (!batch || batch.length === 0) break;
-      all = all.concat(batch);
-      if (batch.length < limit) break;
-      offset += limit;
-    }
-    allEmails = all.map(normalizeEmail);
-    setStatus('connected', `${allEmails.length} emails`);
-    applyFilters();
-    hideLoading();
-    toast(`Loaded ${allEmails.length} emails from Supabase`);
-  } catch (err) {
-    console.error('Supabase load error:', err);
-    setStatus('error', 'Connection failed');
-    hideLoading();
-    document.getElementById('viewFeed').innerHTML = `
-      <div class="empty-state">
-        <div class="big-icon">&#x26A0;</div>
-        <div style="font-size:15px;font-weight:500;margin-bottom:8px;">Could not connect to Supabase</div>
-        <div style="font-size:12px;">${esc(err.message)}</div>
-        <div style="font-size:12px;margin-top:12px;">Check the Supabase URL, anon key, and CORS settings.</div>
-      </div>
-    `;
-  }
+function esc(s) { if(!s) return ''; const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+function catColor(c) {
+  if(!c) return '#8899b0';
+  c = c.toLowerCase();
+  if(c.includes('permit')) return '#22c55e';
+  if(c.includes('design')) return '#3b82f6';
+  if(c.includes('construct')) return '#f97316';
+  if(c.includes('legal')) return '#a855f7';
+  if(c.includes('financ')||c.includes('budget')) return '#eab308';
+  if(c.includes('meet')||c.includes('schedule')) return '#06b6d4';
+  return '#8899b0';
 }
+function catBg(c) {
+  if(!c) return 'var(--bg-card)';
+  c = c.toLowerCase();
+  if(c.includes('permit')) return 'var(--green-dim)';
+  if(c.includes('design')) return 'rgba(59,130,246,0.15)';
+  if(c.includes('construct')) return 'var(--orange-dim)';
+  if(c.includes('legal')) return 'var(--purple-dim)';
+  if(c.includes('financ')||c.includes('budget')) return 'var(--yellow-dim)';
+  if(c.includes('meet')||c.includes('schedule')) return 'var(--cyan-dim)';
+  return 'var(--bg-card)';
+}
+function fmtDate(d) { if(!d) return '--'; const dt=new Date(d); return isNaN(dt)?d:dt.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'2-digit'}); }
+function isoDate(d) { if(!d) return null; const dt=new Date(d); return isNaN(dt)?null:dt.toISOString().split('T')[0]; }
 
-async function saveToSupabase(records) {
+// ====== SUPABASE ======
+async function sbGet(table, q='') {
+  if(!SB_KEY) return null;
   try {
-    await sbFetch('emails', {
-      method: 'POST',
-      prefer: 'resolution=merge-duplicates,return=minimal',
-      body: JSON.stringify(records),
+    const r = await fetch(`${SB_URL}/rest/v1/${table}?${q}`, {
+      headers: { 'apikey':SB_KEY, 'Authorization':'Bearer '+SB_KEY, 'Content-Type':'application/json' }
     });
-    return true;
-  } catch (err) {
-    console.error('Save error:', err);
-    toast('Save failed: ' + err.message);
-    return false;
+    if(!r.ok) { console.error('SB GET error:', await r.text()); return null; }
+    return await r.json();
+  } catch(e) { console.error(e); return null; }
+}
+async function sbPost(table, rows) {
+  if(!SB_KEY) { toast('Set Supabase key in Settings','error'); return null; }
+  try {
+    const r = await fetch(`${SB_URL}/rest/v1/${table}`, {
+      method:'POST',
+      headers: { 'apikey':SB_KEY, 'Authorization':'Bearer '+SB_KEY, 'Content-Type':'application/json', 'Prefer':'return=representation' },
+      body: JSON.stringify(rows)
+    });
+    if(!r.ok) { console.error('SB POST error:', await r.text()); toast('Insert failed','error'); return null; }
+    return await r.json();
+  } catch(e) { console.error(e); return null; }
+}
+async function sbPatch(table, id, data) {
+  if(!SB_KEY) return null;
+  try {
+    const r = await fetch(`${SB_URL}/rest/v1/${table}?id=eq.${id}`, {
+      method:'PATCH',
+      headers: { 'apikey':SB_KEY, 'Authorization':'Bearer '+SB_KEY, 'Content-Type':'application/json', 'Prefer':'return=representation' },
+      body: JSON.stringify(data)
+    });
+    if(!r.ok) { console.error('SB PATCH error:', await r.text()); return null; }
+    return await r.json();
+  } catch(e) { console.error(e); return null; }
+}
+async function sbDel(table, id) {
+  if(!SB_KEY) return false;
+  try {
+    const r = await fetch(`${SB_URL}/rest/v1/${table}?id=eq.${id}`, {
+      method:'DELETE', headers: { 'apikey':SB_KEY, 'Authorization':'Bearer '+SB_KEY }
+    });
+    return r.ok;
+  } catch(e) { console.error(e); return false; }
+}
+
+// ====== TABS ======
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab===name));
+  document.querySelectorAll('.panel').forEach(p => p.classList.toggle('active', p.id==='panel-'+name));
+  if(name==='gantt') renderGantt();
+}
+
+// ====== LOAD DATA ======
+async function loadEmails() {
+  const data = await sbGet('emails', 'select=*&order=date_parsed.desc.nullslast&limit=2000');
+  if(data) {
+    allEmails = data;
+    document.getElementById('statusDot').classList.add('connected');
+    document.getElementById('statusDot').title = 'Connected';
+    document.getElementById('emailCount').textContent = data.length + ' emails';
+    renderEmails();
+  } else {
+    document.getElementById('statusDot').classList.remove('connected');
+    document.getElementById('statusDot').title = 'Connection failed — check Settings';
   }
 }
-
-// ========== NORMALIZE (maps Supabase columns to app fields) ==========
-// Supabase columns: id, from name, from email, org, role, category,
-// subject, body_preview, date_str, date_parsed, to, cc, schedule relevance, created_at
-function normalizeEmail(raw) {
-  const fromName = raw['from name'] || '';
-  const fromEmail = raw['from email'] || '';
-  const from = fromName ? `${fromName} <${fromEmail}>` : fromEmail;
-  const org = raw['org'] || '';
-  const cat = raw['category'] || 'Other';
-  return {
-    id: raw.id,
-    from: from,
-    fromName: fromName,
-    fromEmail: fromEmail,
-    to: raw['to'] || '',
-    cc: raw['cc'] || '',
-    subject: raw['subject'] || '(No Subject)',
-    body: raw['body_preview'] || '',
-    date: raw['date_parsed'] || raw['date_str'] || '',
-    dateStr: raw['date_str'] || '',
-    org: org,
-    role: raw['role'] || '',
-    cat: cat,
-    color: getCatColor(cat),
-    scheduleFlag: raw['schedule relevance'] || '',
-    threadKey: normalizeSubject(raw['subject'] || ''),
-  };
-}
-
-function getCatColor(cat) {
-  const found = CATEGORIES.find(c => c.id === cat);
-  return found ? found.color : 'var(--text2)';
-}
-
-function normalizeSubject(s) {
-  return (s || '').replace(/^(re|fw|fwd):\s*/gi, '').trim().toLowerCase();
-}
-
-// ========== FILTERS & SORTING ==========
-function applyFilters() {
-  let list = [...allEmails];
-  if (currentCat !== 'all') {
-    list = list.filter(e => e.cat === currentCat);
+async function loadTasks() {
+  const data = await sbGet('gantt_tasks', 'select=*&order=start_date.asc.nullslast');
+  if(data) {
+    allTasks = data;
+    document.getElementById('taskCount').textContent = data.length + ' tasks';
+    populateAssignees();
+    renderGantt();
   }
-  if (searchQuery) {
-    const q = searchQuery.toLowerCase();
-    list = list.filter(e =>
-      (e.subject || '').toLowerCase().includes(q) ||
-      (e.from || '').toLowerCase().includes(q) ||
-      (e.to || '').toLowerCase().includes(q) ||
-      (e.body || '').toLowerCase().includes(q) ||
-      (e.org || '').toLowerCase().includes(q)
+}
+function populateAssignees() {
+  const sel = document.getElementById('ganttAssignFilter');
+  const cur = sel.value;
+  const list = [...new Set(allTasks.map(t=>t.assigned_to).filter(Boolean))].sort();
+  sel.innerHTML = '<option value="all">All Assignees</option>';
+  list.forEach(a => { const o=document.createElement('option'); o.value=a; o.textContent=a; sel.appendChild(o); });
+  sel.value = cur || 'all';
+}
+
+// ====== RENDER EMAILS ======
+function renderEmails() {
+  const q = document.getElementById('emailSearch').value.toLowerCase();
+  const list = document.getElementById('emailList');
+  let filtered = allEmails;
+  if(emailFilter !== 'all') {
+    if(emailFilter === 'schedule') {
+      filtered = filtered.filter(e => { const sr=(e['schedule relevance']||'').toLowerCase(); return sr && sr!=='none' && sr!=='low'; });
+    } else {
+      filtered = filtered.filter(e => (e.category||'').toLowerCase().includes(emailFilter));
+    }
+  }
+  if(q) {
+    filtered = filtered.filter(e =>
+      (e['from name']||'').toLowerCase().includes(q) ||
+      (e.subject||'').toLowerCase().includes(q) ||
+      (e.body_preview||'').toLowerCase().includes(q) ||
+      (e['from email']||'').toLowerCase().includes(q)
     );
   }
-  if (currentSort === 'newest') {
-    list.sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
-  } else if (currentSort === 'org') {
-    list.sort((a, b) => (a.org || '').localeCompare(b.org || ''));
-  }
-  filteredEmails = list;
-  document.getElementById('emailCount').textContent = `${list.length} of ${allEmails.length}`;
-  renderCurrentView();
-  renderCatFilters();
-}
-
-function handleSearch() {
-  searchQuery = document.getElementById('searchInput').value;
-  applyFilters();
-}
-
-function setSort(sort) {
-  currentSort = sort;
-  document.querySelectorAll('.sort-btn').forEach(b => b.classList.toggle('active', b.dataset.sort === sort));
-  applyFilters();
-}
-
-function filterByCat(cat) {
-  currentCat = cat;
-  applyFilters();
-}
-
-// ========== CATEGORY SIDEBAR ==========
-function renderCatFilters() {
-  const counts = {};
-  allEmails.forEach(e => { counts[e.cat] = (counts[e.cat] || 0) + 1; });
-  const el = document.getElementById('catFilters');
-  el.innerHTML = CATEGORIES.map(c => {
-    const cnt = c.id === 'all' ? allEmails.length : (counts[c.id] || 0);
-    const active = currentCat === c.id ? 'active' : '';
-    return `<button class="cat-btn ${active}" onclick="filterByCat('${c.id}')">
-      <span class="cat-dot" style="background:${c.color}"></span>
-      <span>${c.label}</span>
-      <span class="cat-count">${cnt}</span>
-    </button>`;
-  }).join('');
-}
-
-// ========== VIEW SWITCHING ==========
-function switchView(view) {
-  currentView = view;
-  document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.view === view));
-  const labels = { feed:'Feed', threads:'Threads', timeline:'Timeline', dashboard:'Dashboard', conflicts:'Conflicts' };
-  document.getElementById('viewTitle').textContent = labels[view] || view;
-  ['Feed','Threads','Timeline','Dashboard','Conflicts'].forEach(v => {
-    document.getElementById('view'+v).style.display = (v.toLowerCase() === view) ? '' : 'none';
-  });
-  renderCurrentView();
-}
-
-function renderCurrentView() {
-  switch (currentView) {
-    case 'feed': renderFeed(); break;
-    case 'threads': renderThreads(); break;
-    case 'timeline': renderTimeline(); break;
-    case 'dashboard': renderDashboard(); break;
-    case 'conflicts': renderConflicts(); break;
-  }
-}
-
-// ========== FEED VIEW ==========
-function renderFeed() {
-  const el = document.getElementById('viewFeed');
-  if (filteredEmails.length === 0) {
-    el.innerHTML = '<div class="empty-state"><div class="big-icon">&#x2709;</div><div>No emails match your filters</div></div>';
+  if(filtered.length === 0) {
+    list.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text-muted);font-size:12px">No emails match your filters.</div>';
     return;
   }
-  el.innerHTML = filteredEmails.slice(0, 200).map((e, i) => `
-    <div class="email-card" onclick="openDetail(${i})">
-      <div class="ec-top">
-        <span class="ec-org" style="background:${e.color}22;color:${e.color}">${esc(e.org)}</span>
-        <span class="ec-date">${formatDate(e.date)}</span>
-      </div>
-      <div class="ec-subject">${esc(e.subject)}</div>
-      <div class="ec-from">${esc(e.from)}</div>
-      ${e.body ? `<div class="ec-snippet">${esc(e.body.substring(0, 140))}</div>` : ''}
-    </div>
-  `).join('');
-}
-
-// ========== THREAD VIEW ==========
-function renderThreads() {
-  const threads = {};
-  filteredEmails.forEach(e => {
-    const key = e.threadKey || e.subject;
-    if (!threads[key]) threads[key] = [];
-    threads[key].push(e);
-  });
-  const sorted = Object.entries(threads).sort((a, b) => b[1].length - a[1].length);
-  const el = document.getElementById('viewThreads');
-  if (sorted.length === 0) {
-    el.innerHTML = '<div class="empty-state"><div class="big-icon">&#x1F9F5;</div><div>No threads found</div></div>';
-    return;
-  }
-  el.innerHTML = sorted.slice(0, 100).map(([key, msgs]) => `
-    <div class="thread-group">
-      <div class="thread-header" onclick="toggleThread(this)">
-        <span class="arrow">&#x25B6;</span>
-        <span>${esc(msgs[0].subject)}</span>
-        <span class="thread-count">${msgs.length}</span>
-      </div>
-      <div class="thread-messages" style="display:none">
-        ${msgs.map(e => `
-          <div class="email-card" style="margin:6px 0" onclick='openDetailObj(${JSON.stringify({subject:e.subject,from:e.from,to:e.to,date:e.date,dateStr:e.dateStr,org:e.org,role:e.role,body:e.body}).replace(/'/g,"&#39;")})'>
-            <div class="ec-top">
-              <span class="ec-org" style="background:${e.color}22;color:${e.color}">${esc(e.org)}</span>
-              <span class="ec-date">${formatDate(e.date)}</span>
-            </div>
-            <div class="ec-from">${esc(e.from)}</div>
-          </div>
-        `).join('')}
-      </div>
-    </div>
-  `).join('');
-}
-
-function toggleThread(header) {
-  header.classList.toggle('expanded');
-  const msgs = header.nextElementSibling;
-  msgs.style.display = msgs.style.display === 'none' ? '' : 'none';
-}
-
-// ========== TIMELINE VIEW ==========
-function renderTimeline() {
-  const el = document.getElementById('viewTimeline');
-  const withDates = filteredEmails.filter(e => e.date);
-  if (withDates.length === 0) {
-    el.innerHTML = '<div class="empty-state"><div class="big-icon">&#x1F4C5;</div><div>No dated emails</div></div>';
-    return;
-  }
-  const months = {};
-  withDates.forEach(e => {
-    const d = new Date(e.date);
-    if (isNaN(d)) return;
-    const mk = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
-    const dk = d.toISOString().slice(0, 10);
-    if (!months[mk]) months[mk] = {};
-    if (!months[mk][dk]) months[mk][dk] = [];
-    months[mk][dk].push(e);
-  });
-  const sortedMonths = Object.keys(months).sort().reverse();
-  el.innerHTML = sortedMonths.map(mk => {
-    const days = Object.keys(months[mk]).sort().reverse();
-    return `<div class="tl-month">
-      <div class="tl-month-label">${formatMonthLabel(mk)}</div>
-      ${days.map(dk => `
-        <div class="tl-day">
-          <div class="tl-day-label">${dk}</div>
-          ${months[mk][dk].map(e => `
-            <div class="tl-item" onclick='openDetailObj(${JSON.stringify({subject:e.subject,from:e.from,to:e.to,date:e.date,dateStr:e.dateStr,org:e.org,role:e.role,body:e.body}).replace(/'/g,"&#39;")})'>
-              <span class="cat-dot" style="background:${e.color}"></span>
-              <span style="flex:1">${esc(e.subject)}</span>
-              <span style="color:var(--text2);font-size:11px">${esc(e.org)}</span>
-            </div>
-          `).join('')}
-        </div>
-      `).join('')}
+  list.innerHTML = filtered.slice(0,500).map(e => {
+    const cat = (e.category||'other').toLowerCase();
+    return `<div class="email-row" onclick='showEmail(${JSON.stringify(e.id).replace(/'/g,"&#39;")})'>
+      <div class="email-from">${esc(e['from name']||e['from email']||'Unknown')}</div>
+      <div class="email-subject">${esc(e.subject||'(no subject)')}</div>
+      <div class="email-cat" style="background:${catBg(cat)};color:${catColor(cat)}">${esc(cat)}</div>
+      <div class="email-date">${fmtDate(e.date_parsed||e.date_str)}</div>
     </div>`;
   }).join('');
 }
+function filterEmails(cat, btn) {
+  emailFilter = cat;
+  document.querySelectorAll('#panel-emails .filter-btn').forEach(b => b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  renderEmails();
+}
+document.getElementById('emailSearch').addEventListener('input', renderEmails);
 
-// ========== DASHBOARD VIEW ==========
-function renderDashboard() {
-  const el = document.getElementById('viewDashboard');
-  const total = allEmails.length;
-  const orgs = {}, cats = {};
-  allEmails.forEach(e => {
-    orgs[e.org] = (orgs[e.org] || 0) + 1;
-    cats[e.cat] = (cats[e.cat] || 0) + 1;
-  });
-  const topOrgs = Object.entries(orgs).sort((a,b) => b[1]-a[1]).slice(0, 10);
-  const topCats = Object.entries(cats).sort((a,b) => b[1]-a[1]);
-  const maxOrg = topOrgs[0] ? topOrgs[0][1] : 1;
-  const maxCat = topCats[0] ? topCats[0][1] : 1;
-  const threads = new Set(allEmails.map(e => e.threadKey)).size;
-
-  el.innerHTML = `
-    <div class="dash-grid">
-      <div class="dash-card"><div class="dc-label">Total Emails</div><div class="dc-value">${total}</div></div>
-      <div class="dash-card"><div class="dc-label">Organizations</div><div class="dc-value">${Object.keys(orgs).length}</div></div>
-      <div class="dash-card"><div class="dc-label">Threads</div><div class="dc-value">${threads}</div></div>
-      <div class="dash-card"><div class="dc-label">Categories</div><div class="dc-value">${topCats.length}</div></div>
+// ====== EMAIL DETAIL ======
+function showEmail(id) {
+  const e = allEmails.find(x => x.id === id);
+  if(!e) return;
+  currentEmail = e;
+  document.getElementById('emailModalSubject').textContent = e.subject || '(no subject)';
+  document.getElementById('emailModalBody').innerHTML = `
+    <div class="meta">
+      <div><strong>From:</strong> ${esc(e['from name'])} &lt;${esc(e['from email'])}&gt;</div>
+      <div><strong>To:</strong> ${esc(e.to||'--')}</div>
+      <div><strong>Date:</strong> ${esc(e.date_str||e.date_parsed||'--')}</div>
+      <div><strong>Category:</strong> ${esc(e.category||'--')} &nbsp;|&nbsp; <strong>Schedule:</strong> ${esc(e['schedule relevance']||'--')}</div>
+      ${e.cc?'<div><strong>CC:</strong> '+esc(e.cc)+'</div>':''}
     </div>
-    <div class="dash-grid">
-      <div class="dash-card">
-        <div class="dc-label">Top Organizations</div>
-        <div class="dash-bar-group">
-          ${topOrgs.map(([name, cnt]) => `<div class="dash-bar-row">
-            <span class="dash-bar-label">${esc(name)}</span>
-            <div style="flex:1"><div class="dash-bar" style="width:${(cnt/maxOrg*100)}%;background:${getCatColor(allEmails.find(e=>e.org===name)?.cat)}"></div></div>
-            <span class="dash-bar-count">${cnt}</span>
-          </div>`).join('')}
-        </div>
-      </div>
-      <div class="dash-card">
-        <div class="dc-label">By Category</div>
-        <div class="dash-bar-group">
-          ${topCats.map(([name, cnt]) => `<div class="dash-bar-row">
-            <span class="dash-bar-label">${esc(name)}</span>
-            <div style="flex:1"><div class="dash-bar" style="width:${(cnt/maxCat*100)}%;background:${getCatColor(name)}"></div></div>
-            <span class="dash-bar-count">${cnt}</span>
-          </div>`).join('')}
-        </div>
-      </div>
-    </div>
-  `;
+    <div class="body-text">${esc(e.body_preview||'(no body)')}</div>`;
+  document.getElementById('emailModal').classList.add('active');
 }
 
-// ========== CONFLICTS VIEW ==========
-function renderConflicts() {
-  const el = document.getElementById('viewConflicts');
-  const keywords = ['deadline','delay','schedule','timeline','due date','behind','overdue','postpone','reschedule','asap','urgent','critical path','milestone','permit','inspection','approval'];
-  const flagged = allEmails.filter(e => {
-    if (e.scheduleFlag && e.scheduleFlag.trim()) return true;
-    const text = ((e.subject||'')+ ' '+(e.body||'')).toLowerCase();
-    return keywords.some(k => text.includes(k));
-  }).sort((a,b) => new Date(b.date||0) - new Date(a.date||0));
+// ====== GANTT RENDERING ======
+function renderGantt() {
+  const body = document.getElementById('ganttBody');
+  const empty = document.getElementById('ganttEmpty');
+  const catF = document.getElementById('ganttCatFilter').value;
+  const assignF = document.getElementById('ganttAssignFilter').value;
+  const zoom = document.getElementById('ganttZoom').value;
 
-  if (flagged.length === 0) {
-    el.innerHTML = '<div class="empty-state"><div class="big-icon">&#x2705;</div><div>No schedule conflicts detected</div></div>';
+  let tasks = allTasks.filter(t => t.start_date);
+  if(catF!=='all') tasks = tasks.filter(t => (t.category||'').toLowerCase()===catF);
+  if(assignF!=='all') tasks = tasks.filter(t => (t.assigned_to||'')===assignF);
+
+  if(tasks.length===0) {
+    body.innerHTML = '';
+    const e = empty.cloneNode(true);
+    e.style.display = 'flex';
+    e.id = 'ganttEmpty';
+    body.appendChild(e);
     return;
   }
-  el.innerHTML = `
-    <div style="font-size:12px;color:var(--text2);margin-bottom:16px;">${flagged.length} schedule-relevant emails</div>
-    ${flagged.slice(0, 50).map(e => {
-      const label = e.scheduleFlag || keywords.filter(k => ((e.subject||'')+(e.body||'')).toLowerCase().includes(k)).join(' \u2022 ');
-      return `<div class="conflict-card" onclick='openDetailObj(${JSON.stringify({subject:e.subject,from:e.from,to:e.to,date:e.date,dateStr:e.dateStr,org:e.org,role:e.role,body:e.body}).replace(/'/g,"&#39;")})'>
-        <div class="cc-type">${esc(label)}</div>
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
-          <span class="ec-org" style="background:${e.color}22;color:${e.color};font-size:10px;padding:2px 6px;border-radius:3px">${esc(e.org)}</span>
-          <span style="font-size:11px;color:var(--text2)">${formatDate(e.date)}</span>
-        </div>
-        <div class="cc-desc">${esc(e.subject)}</div>
-        ${e.body ? `<div style="font-size:12px;color:var(--text2);margin-top:6px">${esc(e.body.substring(0,200))}</div>` : ''}
-      </div>`;
-    }).join('')}
-  `;
-}
 
-// ========== EMAIL DETAIL ==========
-function openDetail(idx) {
-  const e = filteredEmails[idx];
-  if (!e) return;
-  showDetailPanel(e);
-}
+  const allDts = tasks.flatMap(t => [new Date(t.start_date), new Date(t.end_date||t.start_date)]);
+  let minD = new Date(Math.min(...allDts));
+  let maxD = new Date(Math.max(...allDts));
+  minD.setDate(minD.getDate()-7);
+  maxD.setDate(maxD.getDate()+14);
 
-function openDetailObj(e) {
-  showDetailPanel(e);
-}
+  if(zoom==='week') { minD.setDate(minD.getDate()-minD.getDay()); }
+  else if(zoom==='month') { minD.setDate(1); }
+  else { minD.setDate(1); minD.setMonth(Math.floor(minD.getMonth()/3)*3); }
 
-function showDetailPanel(e) {
-  document.getElementById('edSubject').textContent = e.subject || '(No Subject)';
-  document.getElementById('edFrom').textContent = e.from || '';
-  document.getElementById('edTo').textContent = e.to || '';
-  document.getElementById('edDate').textContent = e.dateStr || e.date || '';
-  document.getElementById('edOrg').textContent = (e.org || '') + (e.role ? ' \u2014 ' + e.role : '');
-  document.getElementById('edMessage').textContent = e.body || '(No content)';
-  document.getElementById('emailDetail').classList.add('open');
-}
-
-function closeDetail() {
-  document.getElementById('emailDetail').classList.remove('open');
-}
-
-// ========== IMPORT: CSV ==========
-function handleCSV(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = async function(ev) {
-    const text = ev.target.result;
-    const lines = text.split('\n');
-    if (lines.length < 2) { toast('CSV appears empty'); return; }
-    const headers = parseCSVLine(lines[0]);
-    const records = [];
-    for (let i = 1; i < lines.length; i++) {
-      if (!lines[i].trim()) continue;
-      const vals = parseCSVLine(lines[i]);
-      const row = {};
-      headers.forEach((h, idx) => { row[h.trim().toLowerCase().replace(/[^a-z0-9_]/g, '_')] = vals[idx] || ''; });
-      const fromName = row.from_name || row.from || '';
-      const fromEmail = row.from_email || row.sender_address || '';
-      const subject = row.subject || '';
-      if (!fromName && !fromEmail && !subject) continue;
-      records.push({
-        'from name': fromName,
-        'from email': fromEmail,
-        'subject': subject,
-        'body_preview': row.body_preview || row.body || row.message || row.content || row.notes || '',
-        'date_str': row.date_str || row.date || row.sent_date || row.received_date || '',
-        'to': row.to || row.recipients || '',
-        'cc': row.cc || '',
-        'org': row.org || row.organization || '',
-        'category': row.category || '',
-        'role': row.role || '',
-        'schedule relevance': row.schedule_relevance || '',
-      });
+  const cols = [];
+  let cur = new Date(minD);
+  while(cur <= maxD) {
+    const start = new Date(cur);
+    let end, label;
+    if(zoom==='week') {
+      end=new Date(cur); end.setDate(end.getDate()+6);
+      label=cur.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+      cur.setDate(cur.getDate()+7);
+    } else if(zoom==='month') {
+      end=new Date(cur.getFullYear(),cur.getMonth()+1,0);
+      label=cur.toLocaleDateString('en-US',{month:'short',year:'2-digit'});
+      cur.setMonth(cur.getMonth()+1);
+    } else {
+      end=new Date(cur.getFullYear(),cur.getMonth()+3,0);
+      label='Q'+String(Math.floor(cur.getMonth()/3)+1)+' '+cur.getFullYear().toString().slice(-2);
+      cur.setMonth(cur.getMonth()+3);
     }
-    setImportStatus(`Parsed ${records.length} emails. Saving...`);
-    const ok = await saveToSupabase(records);
-    if (ok) {
-      toast(`Imported ${records.length} emails`);
-      setImportStatus(`Done! ${records.length} emails saved.`);
-      await loadFromSupabase();
+    cols.push({start,end,label});
+  }
+
+  const cw = zoom==='week'?80:zoom==='month'?120:160;
+  const tw = cols.length*cw;
+  const totalDays = (maxD-minD)/(864e5);
+  const ppd = tw/totalDays;
+
+  let h = '<div class="gantt-sidebar"><div class="gantt-sidebar-header"><div>Task</div><div>Start</div><div>End</div></div>';
+  tasks.forEach(t => {
+    h += `<div class="gantt-task-row" onclick="openTaskModal('${t.id}')">
+      <div class="gantt-task-name"><span class="cat-dot" style="background:${catColor(t.category)}"></span>${esc(t.task_name)}</div>
+      <div class="gantt-task-date">${fmtDate(t.start_date)}</div>
+      <div class="gantt-task-date">${t.is_milestone?'--':fmtDate(t.end_date)}</div></div>`;
+  });
+  h += '</div><div class="gantt-timeline"><div class="gantt-timeline-header" style="width:'+tw+'px">';
+  cols.forEach(c => { h += `<div class="gantt-col-header" style="width:${cw}px;min-width:${cw}px">${c.label}</div>`; });
+  h += '</div><div class="gantt-rows" style="width:'+tw+'px;position:relative">';
+
+  tasks.forEach(() => {
+    h += '<div class="gantt-row-bg">';
+    cols.forEach(() => { h += `<div class="col-cell" style="width:${cw}px;min-width:${cw}px"></div>`; });
+    h += '</div>';
+  });
+
+  const today = new Date(); today.setHours(0,0,0,0);
+  const todayX = ((today-minD)/864e5)*ppd;
+  if(todayX>0 && todayX<tw) {
+    h += `<div class="gantt-today-line" style="left:${todayX}px"><div class="gantt-today-label">Today</div></div>`;
+  }
+
+  tasks.forEach((t,i) => {
+    const s = new Date(t.start_date);
+    const e = t.end_date ? new Date(t.end_date) : s;
+    const sx = ((s-minD)/864e5)*ppd;
+    const bw = Math.max(((e-s)/864e5)*ppd, 4);
+    const top = i*36;
+    const col = catColor(t.category);
+
+    if(t.is_milestone) {
+      h += `<div class="gantt-milestone-marker" style="left:${sx}px;top:${top+11}px;background:${col}" title="${esc(t.task_name)}" onclick="openTaskModal('${t.id}')"></div>`;
+    } else {
+      h += `<div class="gantt-bar" style="left:${sx}px;width:${bw}px;top:${top+8}px;background:${col}" title="${esc(t.task_name)}" onclick="openTaskModal('${t.id}')">${bw>60?esc(t.task_name):''}</div>`;
     }
+  });
+
+  h += '</div></div>';
+  body.innerHTML = h;
+
+  // Sync sidebar and timeline vertical scroll
+  const sidebar = body.querySelector('.gantt-sidebar');
+  const timeline = body.querySelector('.gantt-timeline');
+  if(sidebar && timeline) {
+    sidebar.addEventListener('scroll', () => { timeline.scrollTop = sidebar.scrollTop; });
+    timeline.addEventListener('scroll', () => { sidebar.scrollTop = timeline.scrollTop; });
+  }
+}
+
+// ====== TASK CRUD ======
+function openTaskModal(id) {
+  const modal = document.getElementById('taskModal');
+  const del = document.getElementById('taskDeleteBtn');
+  if(id && typeof id==='string') {
+    const t = allTasks.find(x => String(x.id)===String(id));
+    if(!t) return;
+    document.getElementById('taskModalTitle').textContent = 'Edit Task';
+    document.getElementById('taskEditId').value = t.id;
+    document.getElementById('taskName').value = t.task_name||'';
+    document.getElementById('taskStart').value = t.start_date||'';
+    document.getElementById('taskEnd').value = t.end_date||'';
+    document.getElementById('taskCategory').value = (t.category||'other').toLowerCase();
+    document.getElementById('taskAssign').value = t.assigned_to||'';
+    document.getElementById('taskMilestone').checked = !!t.is_milestone;
+    document.getElementById('taskNotes').value = t.notes||'';
+    del.style.display = 'inline-block';
+  } else {
+    document.getElementById('taskModalTitle').textContent = 'Add Task';
+    document.getElementById('taskEditId').value = '';
+    document.getElementById('taskName').value = '';
+    document.getElementById('taskStart').value = '';
+    document.getElementById('taskEnd').value = '';
+    document.getElementById('taskCategory').value = 'other';
+    document.getElementById('taskAssign').value = '';
+    document.getElementById('taskMilestone').checked = false;
+    document.getElementById('taskNotes').value = '';
+    del.style.display = 'none';
+  }
+  modal.classList.add('active');
+}
+async function saveTask() {
+  const id = document.getElementById('taskEditId').value;
+  const d = {
+    task_name: document.getElementById('taskName').value.trim(),
+    start_date: document.getElementById('taskStart').value||null,
+    end_date: document.getElementById('taskEnd').value||null,
+    category: document.getElementById('taskCategory').value,
+    assigned_to: document.getElementById('taskAssign').value.trim()||null,
+    is_milestone: document.getElementById('taskMilestone').checked,
+    notes: document.getElementById('taskNotes').value.trim()||null,
+    source_type: 'manual'
   };
-  reader.readAsText(file);
+  if(!d.task_name) { toast('Task name required','error'); return; }
+  if(!d.start_date) { toast('Start date required','error'); return; }
+  if(d.is_milestone) d.end_date = d.start_date;
+
+  if(id) {
+    const r = await sbPatch('gantt_tasks', id, d);
+    if(r) { toast('Task updated','success'); closeModal('taskModal'); await loadTasks(); }
+    else toast('Update failed','error');
+  } else {
+    const r = await sbPost('gantt_tasks', [d]);
+    if(r) { toast('Task created','success'); closeModal('taskModal'); await loadTasks(); }
+    else toast('Insert failed','error');
+  }
+}
+async function deleteTask() {
+  const id = document.getElementById('taskEditId').value;
+  if(!id || !confirm('Delete this task?')) return;
+  if(await sbDel('gantt_tasks', id)) { toast('Task deleted','success'); closeModal('taskModal'); await loadTasks(); }
+  else toast('Delete failed','error');
 }
 
-// ========== IMPORT: EML / MSG DRAG & DROP ==========
-function handleEML(event) {
-  const file = event.target.files ? event.target.files[0] : event;
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = async function(ev) {
-    const text = ev.target.result;
-    const parsed = parseEMLText(text);
-    if (!parsed.subject && !parsed.from) {
-      toast('Could not parse this file. Try CSV export instead.');
+// ====== SCHEDULE FILE IMPORT ======
+async function handleScheduleFile(file) {
+  if(!file) return;
+  const ext = file.name.split('.').pop().toLowerCase();
+  const prog = document.getElementById('scheduleProgress');
+  prog.style.display = 'block';
+  prog.innerHTML = '<div class="log-line">Processing '+esc(file.name)+'...</div>';
+
+  try {
+    let text = '', structured = null;
+
+    if(ext==='xlsx'||ext==='xls') {
+      const ab = await file.arrayBuffer();
+      const wb = XLSX.read(ab, {type:'array', cellDates:true});
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      structured = XLSX.utils.sheet_to_json(ws, {defval:''});
+      prog.innerHTML += '<div class="log-line ok">Parsed '+structured.length+' rows from Excel</div>';
+    } else if(ext==='csv') {
+      const raw = await file.text();
+      const res = Papa.parse(raw, {header:true, skipEmptyLines:true});
+      structured = res.data;
+      prog.innerHTML += '<div class="log-line ok">Parsed '+res.data.length+' rows from CSV</div>';
+    } else if(ext==='docx'||ext==='doc') {
+      const ab = await file.arrayBuffer();
+      const res = await mammoth.extractRawText({arrayBuffer:ab});
+      text = res.value;
+      prog.innerHTML += '<div class="log-line ok">Extracted '+text.length+' chars from Word</div>';
+    } else if(ext==='pdf') {
+      const ab = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({data:ab}).promise;
+      let pages=[];
+      for(let i=1;i<=pdf.numPages;i++) { const p=await pdf.getPage(i); const tc=await p.getTextContent(); pages.push(tc.items.map(it=>it.str).join(' ')); }
+      text = pages.join('\n\n');
+      prog.innerHTML += '<div class="log-line ok">Extracted text from '+pdf.numPages+' PDF pages</div>';
+    } else {
+      prog.innerHTML += '<div class="log-line err">Unsupported: .'+ext+'</div>';
       return;
     }
-    const record = {
-      'from name': parsed.fromName || parsed.from,
-      'from email': parsed.fromEmail || parsed.from,
-      'subject': parsed.subject,
-      'body_preview': parsed.body.substring(0, 2000),
-      'date_str': parsed.date,
-      'to': parsed.to,
-      'cc': parsed.cc || '',
-    };
-    setImportStatus('Saving 1 email...');
-    const ok = await saveToSupabase([record]);
-    if (ok) {
-      toast('Imported 1 email');
-      setImportStatus('Done! 1 email saved.');
-      await loadFromSupabase();
-    }
-  };
-  reader.readAsText(file);
-}
 
-function parseEMLText(text) {
-  // Simple .eml header parser
-  const lines = text.split(/\r?\n/);
-  const headers = {};
-  let i = 0;
-  let currentHeader = '';
-  // Parse headers until blank line
-  for (; i < lines.length; i++) {
-    if (lines[i].trim() === '') { i++; break; }
-    if (/^\s/.test(lines[i]) && currentHeader) {
-      headers[currentHeader] += ' ' + lines[i].trim();
-    } else {
-      const match = lines[i].match(/^([^:]+):\s*(.*)/);
-      if (match) {
-        currentHeader = match[1].toLowerCase();
-        headers[currentHeader] = match[2];
+    if(structured && structured.length>0) {
+      const tasks = mapToTasks(structured, file.name);
+      if(tasks.length>0) {
+        const r = await sbPost('gantt_tasks', tasks);
+        if(r) { prog.innerHTML+='<div class="log-line ok">Imported '+tasks.length+' tasks</div>'; toast('Imported '+tasks.length+' tasks','success'); await loadTasks(); return; }
       }
+      text = structured.map(r=>Object.entries(r).map(([k,v])=>k+': '+v).join(', ')).join('\n');
+      prog.innerHTML += '<div class="log-line">Column mapping unclear, trying AI...</div>';
     }
-  }
-  // Rest is body
-  const body = lines.slice(i).join('\n').trim();
-  // Extract name and email from "From" header
-  const fromRaw = headers['from'] || '';
-  let fromName = '', fromEmail = '';
-  const fromMatch = fromRaw.match(/^"?([^"<]*)"?\s*<?([^>]*)>?/);
-  if (fromMatch) {
-    fromName = fromMatch[1].trim();
-    fromEmail = fromMatch[2].trim();
-  }
-  return {
-    from: fromRaw,
-    fromName: fromName,
-    fromEmail: fromEmail || fromRaw,
-    to: headers['to'] || '',
-    cc: headers['cc'] || '',
-    subject: headers['subject'] || '',
-    date: headers['date'] || '',
-    body: body,
-  };
-}
 
-// ========== IMPORT: PASTE ==========
-async function handlePaste() {
-  const from = document.getElementById('pasteFrom').value.trim();
-  const date = document.getElementById('pasteDate').value.trim();
-  const to = document.getElementById('pasteTo').value.trim();
-  const org = document.getElementById('pasteOrg').value.trim();
-  const subject = document.getElementById('pasteSubject').value.trim();
-  const body = document.getElementById('pasteBody').value.trim();
-  if (!from && !subject) { toast('Need at least a From or Subject'); return; }
-  const record = {
-    'from name': from,
-    'from email': from.includes('@') ? from : '',
-    'subject': subject,
-    'body_preview': body.substring(0, 2000),
-    'date_str': date,
-    'to': to,
-    'org': org,
-  };
-  setImportStatus('Saving 1 email...');
-  const ok = await saveToSupabase([record]);
-  if (ok) {
-    toast('Added 1 email');
-    setImportStatus('Done!');
-    // Clear form
-    ['pasteFrom','pasteDate','pasteTo','pasteOrg','pasteSubject','pasteBody'].forEach(id => document.getElementById(id).value = '');
-    await loadFromSupabase();
-  }
-}
-
-// ========== IMPORT MODAL ==========
-function openModal() { document.getElementById('importModal').classList.add('open'); }
-function closeModal() { document.getElementById('importModal').classList.remove('open'); setImportStatus(''); }
-
-function switchImportTab(tab) {
-  document.querySelectorAll('.modal .tab-btn').forEach((b, i) => {
-    const tabs = ['csv','msg','paste','pst'];
-    b.classList.toggle('active', tabs[i] === tab);
-  });
-  ['csv','msg','paste','pst'].forEach(t => {
-    const panel = document.getElementById('tab-' + t);
-    if (panel) panel.classList.toggle('active', t === tab);
-  });
-  setImportStatus('');
-}
-
-function setImportStatus(msg) {
-  document.getElementById('importStatus').textContent = msg;
-}
-
-// ========== CSV PARSER ==========
-function parseCSVLine(line) {
-  const result = [];
-  let current = '';
-  let inQuotes = false;
-  for (let i = 0; i < line.length; i++) {
-    const ch = line[i];
-    if (inQuotes) {
-      if (ch === '"' && line[i+1] === '"') { current += '"'; i++; }
-      else if (ch === '"') { inQuotes = false; }
-      else { current += ch; }
-    } else {
-      if (ch === '"') { inQuotes = true; }
-      else if (ch === ',') { result.push(current); current = ''; }
-      else { current += ch; }
+    if(text && AI_KEY) {
+      prog.innerHTML += '<div class="log-line">Sending to Claude...</div>';
+      const tasks = await aiExtract(text, 'File: '+file.name);
+      if(tasks.length>0) {
+        const r = await sbPost('gantt_tasks', tasks);
+        if(r) { prog.innerHTML+='<div class="log-line ok">AI imported '+tasks.length+' tasks</div>'; toast('AI imported '+tasks.length+' tasks','success'); await loadTasks(); }
+      } else {
+        prog.innerHTML += '<div class="log-line err">AI found no tasks in this file</div>';
+      }
+    } else if(text && !AI_KEY) {
+      prog.innerHTML += '<div class="log-line err">Unstructured file needs AI. Set Anthropic API key in Settings.</div>';
     }
-  }
-  result.push(current);
-  return result;
+  } catch(e) { console.error(e); prog.innerHTML += '<div class="log-line err">Error: '+e.message+'</div>'; }
 }
 
-// ========== UTILITIES ==========
-function esc(s) {
-  if (!s) return '';
-  const d = document.createElement('div');
-  d.textContent = s;
-  return d.innerHTML;
+function mapToTasks(rows, src) {
+  if(!rows.length) return [];
+  const keys = Object.keys(rows[0]);
+  const lkeys = keys.map(k=>k.toLowerCase().trim());
+  const find = (...ns) => { for(const n of ns) { const i=lkeys.findIndex(k=>k.includes(n)); if(i>=0)return keys[i]; } return null; };
+  const nameC=find('task','activity','name','description','milestone','item','work');
+  const startC=find('start','begin','from');
+  const endC=find('end','finish','to','due','deadline','complete');
+  const catC=find('category','phase','type','group','section');
+  const assignC=find('assign','owner','responsible','resource','person','who');
+  if(!nameC||!startC) return [];
+
+  return rows.map(r => {
+    const name=(r[nameC]||'').toString().trim();
+    if(!name) return null;
+    let sd=isoDate(r[startC]), ed=endC?isoDate(r[endC]):sd;
+    if(!sd) return null;
+    if(!ed) ed=sd;
+    return { task_name:name, start_date:sd, end_date:ed, category:catC?(r[catC]||'other').toString().toLowerCase():'other',
+      assigned_to:assignC?(r[assignC]||'').toString():null, is_milestone:sd===ed, source_type:'attachment', source_ref:src, notes:null };
+  }).filter(Boolean);
 }
 
-function formatDate(d) {
-  if (!d) return '';
+// ====== AI EXTRACTION ======
+async function aiExtract(content, sourceRef) {
+  if(!AI_KEY) { toast('No Anthropic API key','error'); return []; }
+  const sys = `You extract schedule data from project communications for Cannon Beach Surf Park, a 57-acre mixed-use master plan in McKinney TX.
+Respond ONLY with a JSON array, no markdown or backticks. Each item:
+{"task_name":"string","start_date":"YYYY-MM-DD","end_date":"YYYY-MM-DD or null","category":"permitting|design|construction|legal|finance|meetings|other","assigned_to":"string or null","is_milestone":true/false,"notes":"string or null"}
+Rules: extract every task, deadline, meeting, submission date, milestone. For milestones set end_date=start_date. Categorize by content. If year missing assume 2025-2026. Return [] if no schedule data.`;
+
   try {
-    const dt = new Date(d);
-    if (isNaN(dt)) return d;
-    return dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-  } catch { return d; }
+    const r = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers: { 'Content-Type':'application/json', 'x-api-key':AI_KEY, 'anthropic-version':'2023-06-01', 'anthropic-dangerous-direct-browser-access':'true' },
+      body: JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:4000, system:sys, messages:[{role:'user',content:content.substring(0,30000)}] })
+    });
+    if(!r.ok) { console.error('API error:', await r.text()); toast('AI failed: '+r.status,'error'); return []; }
+    const data = await r.json();
+    const txt = data.content.map(c=>c.text||'').join('');
+    const clean = txt.replace(/```json|```/g,'').trim();
+    const tasks = JSON.parse(clean);
+    return tasks.map(t => ({...t, source_type:'ai_extract', source_ref:sourceRef}));
+  } catch(e) { console.error(e); toast('AI error: '+e.message,'error'); return []; }
 }
 
-function formatMonthLabel(mk) {
-  const [y, m] = mk.split('-');
-  const months = ['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  return `${months[parseInt(m)]} ${y}`;
+async function extractFromCurrentEmail() {
+  if(!currentEmail) return;
+  if(!AI_KEY) { toast('Set Anthropic API key in Settings','error'); return; }
+  const txt = `Subject: ${currentEmail.subject||''}\nFrom: ${currentEmail['from name']||''}\nDate: ${currentEmail.date_str||currentEmail.date_parsed||''}\n\n${currentEmail.body_preview||''}`;
+  toast('Extracting tasks...','info');
+  const tasks = await aiExtract(txt, 'Email: '+(currentEmail.subject||currentEmail.id));
+  if(tasks.length>0) {
+    const r = await sbPost('gantt_tasks', tasks);
+    if(r) { toast('Extracted '+tasks.length+' tasks','success'); closeModal('emailModal'); await loadTasks(); switchTab('gantt'); }
+  } else { toast('No schedule data in this email','info'); }
 }
 
-function setStatus(state, msg) {
-  const dot = document.getElementById('statusDot');
-  const txt = document.getElementById('statusText');
-  if (state === 'connected') { dot.style.background = 'var(--green)'; txt.textContent = msg || 'Connected'; }
-  else if (state === 'loading') { dot.style.background = 'var(--gold)'; txt.textContent = 'Loading...'; }
-  else { dot.style.background = 'var(--coral)'; txt.textContent = msg || 'Error'; }
-}
-
-function hideLoading() { document.getElementById('loadingState').style.display = 'none'; }
-
-function toast(msg) {
-  const el = document.getElementById('toast');
-  el.textContent = msg;
-  el.classList.add('show');
-  setTimeout(() => el.classList.remove('show'), 3000);
-}
-
-// ========== KEYBOARD ==========
-document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') { closeDetail(); closeModal(); }
-  if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); document.getElementById('searchInput').focus(); }
-});
-
-// Close detail on outside click
-document.addEventListener('click', e => {
-  const detail = document.getElementById('emailDetail');
-  if (detail.classList.contains('open') && !detail.contains(e.target) && !e.target.closest('.email-card,.conflict-card,.tl-item')) {
-    closeDetail();
+async function runAiExtract() {
+  if(!AI_KEY) { toast('Set Anthropic API key in Settings','error'); return; }
+  const scope = document.getElementById('extractScope').value;
+  const prog = document.getElementById('extractProgress');
+  prog.style.display='block'; prog.innerHTML='';
+  let emails = allEmails;
+  if(scope==='schedule') {
+    emails = emails.filter(e => { const sr=(e['schedule relevance']||'').toLowerCase(); return sr&&sr!=='none'&&sr!=='low'; });
   }
-});
+  if(!emails.length) { prog.innerHTML='<div class="log-line err">No matching emails</div>'; return; }
+  prog.innerHTML='<div class="log-line">Processing '+emails.length+' emails...</div>';
+  document.getElementById('extractStartBtn').disabled=true;
 
-// ========== DRAG & DROP SETUP ==========
-function setupDropZone(id, handler, accept) {
-  const dz = document.getElementById(id);
-  if (!dz) return;
-  dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('dragover'); });
-  dz.addEventListener('dragleave', () => dz.classList.remove('dragover'));
-  dz.addEventListener('drop', e => {
-    e.preventDefault();
-    dz.classList.remove('dragover');
-    const file = e.dataTransfer.files[0];
-    if (file) handler({ target: { files: [file] } });
+  let total=0;
+  const bs=20;
+  for(let i=0;i<emails.length;i+=bs) {
+    const batch = emails.slice(i,i+bs);
+    const txt = batch.map(e=>`---EMAIL---\nSubject: ${e.subject||''}\nFrom: ${e['from name']||''}\nDate: ${e.date_str||e.date_parsed||''}\nCategory: ${e.category||''}\nSchedule: ${e['schedule relevance']||''}\nBody: ${e.body_preview||''}`).join('\n\n');
+    prog.innerHTML += `<div class="log-line">Batch ${Math.floor(i/bs)+1}: emails ${i+1}-${Math.min(i+bs,emails.length)}...</div>`;
+    const tasks = await aiExtract(txt, 'Bulk email extraction');
+    if(tasks.length>0) {
+      const existing = allTasks.map(t=>`${t.task_name}|${t.start_date}`);
+      const fresh = tasks.filter(t=>!existing.includes(`${t.task_name}|${t.start_date}`));
+      if(fresh.length>0) { await sbPost('gantt_tasks', fresh); total+=fresh.length; prog.innerHTML+=`<div class="log-line ok">+${fresh.length} new tasks</div>`; }
+      else prog.innerHTML+=`<div class="log-line">${tasks.length} duplicates skipped</div>`;
+    } else prog.innerHTML+='<div class="log-line">No tasks from this batch</div>';
+    if(i+bs<emails.length) await new Promise(r=>setTimeout(r,1000));
+  }
+  prog.innerHTML+=`<div class="log-line ok" style="margin-top:8px;font-weight:bold">Done: ${total} new tasks</div>`;
+  document.getElementById('extractStartBtn').disabled=false;
+  if(total>0) { await loadTasks(); toast('Extracted '+total+' tasks','success'); }
+}
+
+// ====== MODALS ======
+function closeModal(id) { document.getElementById(id).classList.remove('active'); if(id==='emailModal') currentEmail=null; }
+function openExtractModal() {
+  const d=document.getElementById('aiStatusDisplay');
+  d.innerHTML = AI_KEY ? '<span class="ai-status ready">AI Enabled</span>' : '<span class="ai-status off">No API Key</span>';
+  document.getElementById('extractProgress').style.display='none';
+  document.getElementById('extractModal').classList.add('active');
+}
+function openScheduleUpload() { document.getElementById('schedUploadModal').classList.add('active'); }
+
+// ====== SETTINGS ======
+function openSettings() {
+  document.getElementById('setSupabaseUrl').value=SB_URL;
+  document.getElementById('setSupabaseKey').value=SB_KEY;
+  document.getElementById('setAnthropicKey').value=AI_KEY;
+  document.getElementById('settingsModal').classList.add('active');
+}
+function saveSettings() {
+  SB_URL=document.getElementById('setSupabaseUrl').value.trim();
+  SB_KEY=document.getElementById('setSupabaseKey').value.trim();
+  AI_KEY=document.getElementById('setAnthropicKey').value.trim();
+  localStorage.setItem('cb_sb_url',SB_URL);
+  localStorage.setItem('cb_sb_key',SB_KEY);
+  if(AI_KEY) sessionStorage.setItem('cb_ai_key',AI_KEY); else sessionStorage.removeItem('cb_ai_key');
+  closeModal('settingsModal');
+  toast('Settings saved','success');
+  loadEmails(); loadTasks();
+}
+
+// ====== CSV / EML IMPORT ======
+async function handleCsvImport(file) {
+  if(!file) return;
+  const text=await file.text();
+  const res=Papa.parse(text,{header:true,skipEmptyLines:true});
+  if(!res.data.length) { toast('No data','error'); return; }
+  const rows=res.data.map(r => {
+    const k=Object.keys(r); const f=(...ns)=>{for(const n of ns){const x=k.find(y=>y.toLowerCase().includes(n));if(x)return r[x]}return''};
+    return {'from name':f('from name','from_name','sender name','sender'),'from email':f('from email','from_email','sender email','email'),
+      org:f('org','organization','company'),role:f('role','title','position'),category:f('category','cat','type'),
+      subject:f('subject','subj'),body_preview:f('body','preview','content','text'),date_str:f('date','sent','time'),
+      to:f('to','recipient'),cc:f('cc','copy'),'schedule relevance':f('schedule','relevance')};
   });
-  // Also make the whole zone clickable
-  if (id === 'dropEML') {
-    dz.addEventListener('click', () => document.getElementById('emlFile').click());
-  }
+  const r=await sbPost('emails',rows);
+  if(r) { toast('Imported '+rows.length+' emails','success'); await loadEmails(); }
 }
 
-setupDropZone('dropCSV', handleCSV);
-setupDropZone('dropEML', handleEML);
+const emlZone=document.getElementById('emlDropZone');
+emlZone.addEventListener('dragover',e=>{e.preventDefault();emlZone.classList.add('dragover')});
+emlZone.addEventListener('dragleave',()=>emlZone.classList.remove('dragover'));
+emlZone.addEventListener('drop',async e=>{
+  e.preventDefault(); emlZone.classList.remove('dragover');
+  let ct=0;
+  for(const f of [...e.dataTransfer.files]) {
+    if(!f.name.endsWith('.eml')) continue;
+    const txt=await f.text(); const em=parseEml(txt);
+    if(em) { await sbPost('emails',[em]); ct++; }
+  }
+  if(ct) { toast('Imported '+ct+' .eml files','success'); await loadEmails(); }
+  else toast('No valid .eml files','error');
+});
+function parseEml(text) {
+  const gh=n=>{const m=text.match(new RegExp('^'+n+':\\s*(.+)$','mi'));return m?m[1].trim():'';};
+  const subj=gh('Subject'),from=gh('From'),to=gh('To'),date=gh('Date');
+  let fn='',fe='';const fm=from.match(/^"?([^"<]*)"?\s*<?([^>]*)>?$/);
+  if(fm){fn=fm[1].trim();fe=fm[2].trim()}else fe=from;
+  const bi=text.indexOf('\n\n');
+  const body=bi>0?text.substring(bi+2,bi+502).replace(/<[^>]+>/g,''):'';
+  return {'from name':fn,'from email':fe,subject:subj,to,date_str:date,body_preview:body,category:'','schedule relevance':''};
+}
 
-// ========== INIT ==========
-loadFromSupabase();
+async function handleManualPaste() {
+  const text=document.getElementById('manualPaste').value.trim();
+  if(!text){toast('Paste data first','error');return}
+  const rows=text.split('\n').filter(l=>l.trim()).map(l=>{
+    const p=l.split(',').map(s=>s.trim());
+    return{'from name':p[0]||'','from email':p[1]||'',subject:p[2]||'',body_preview:p[3]||'',date_str:p[4]||'',category:p[5]||''};
+  });
+  const r=await sbPost('emails',rows);
+  if(r){toast('Imported '+rows.length+' emails','success');document.getElementById('manualPaste').value='';await loadEmails()}
+}
+
+// ====== DROP ZONE SETUP ======
+['csvDropZone','scheduleDropZone'].forEach(id=>{
+  const el=document.getElementById(id); if(!el) return;
+  el.addEventListener('dragover',e=>{e.preventDefault();el.classList.add('dragover')});
+  el.addEventListener('dragleave',()=>el.classList.remove('dragover'));
+});
+document.getElementById('scheduleDropZone').addEventListener('drop',e=>{
+  e.preventDefault();document.getElementById('scheduleDropZone').classList.remove('dragover');
+  if(e.dataTransfer.files.length) handleScheduleFile(e.dataTransfer.files[0]);
+});
+document.getElementById('csvDropZone').addEventListener('drop',e=>{
+  e.preventDefault();document.getElementById('csvDropZone').classList.remove('dragover');
+  if(e.dataTransfer.files.length) handleCsvImport(e.dataTransfer.files[0]);
+});
+
+// Close modals on overlay click
+document.querySelectorAll('.modal-overlay').forEach(o=>{o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('active')})});
+
+// ====== PDF.js WORKER ======
+if(typeof pdfjsLib!=='undefined') pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+// ====== INIT ======
+if(SB_KEY) { loadEmails(); loadTasks(); }
+else document.getElementById('emailList').innerHTML='<div style="padding:40px;text-align:center;color:var(--text-muted);font-size:13px">Open Settings to connect your Supabase database.</div>';
 </script>
 </body>
 </html>
