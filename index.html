@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Cannon Beach Surf Park — Intelligence Dashboard</title>
+<title>Intelligence PM</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
@@ -149,7 +149,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent)}
 <body>
 <div class="header">
   <div class="header-left">
-    <div class="logo">Cannon Beach <span>Intelligence</span></div>
+    <div class="logo">Intelligence <span>PM</span></div>
     <div class="tabs">
       <button class="tab-btn active" data-tab="emails">Emails</button>
       <button class="tab-btn" data-tab="gantt">Gantt Chart</button>
@@ -184,6 +184,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent)}
         <select id="ganttCatFilter" onchange="renderGantt()"><option value="">All Categories</option><option>Permitting</option><option>Design</option><option>Construction</option><option>Infrastructure</option><option>Legal</option><option>Financial</option><option>General</option></select>
         <select id="ganttAssignFilter" onchange="renderGantt()"><option value="">All Assignees</option></select>
         <button class="gantt-add-btn" onclick="showTaskModal()">+ Task</button>
+        <button class="gantt-add-btn" style="background:var(--yellow)" onclick="showMilestoneModal()">+ Milestone</button>
         <button class="gantt-import-btn" onclick="showGanttImportModal()">Import</button>
         <button class="gantt-extract-btn" onclick="extractFromEmails()">Extract Emails</button>
       </div>
@@ -390,11 +391,11 @@ function renderGantt(){
   for(var i=0;i<td;i+=7)body+='<div class="timeline-gridline" style="left:'+i*dw+'px"></div>';
   if(todayX>=0&&todayX<=tw)body+='<div class="timeline-gridline today" style="left:'+todayX+'px"></div>';
   body+='</div>';
-  tasks.forEach(function(t){
+  tasks.forEach(function(t){var tid="'"+t.id+"'";
     body+='<div class="timeline-row" style="width:'+tw+'px">';
-    if(t.is_milestone&&t.start_date){var x=Math.floor((new Date(t.start_date)-minD)/86400000)*dw;body+='<div class="gantt-milestone" style="left:'+x+'px;background:'+getCatColor(t.category)+'" title="'+esc(t.task_name)+'" onclick="showTaskModal('+t.id+')"></div>';}
-    else if(t.start_date&&t.end_date){var sx=Math.floor((new Date(t.start_date)-minD)/86400000)*dw;var ex=Math.floor((new Date(t.end_date)-minD)/86400000)*dw+dw;var bw=Math.max(ex-sx,8);var pw=bw*(t.progress||0)/100;var col=getCatColor(t.category);body+='<div class="gantt-bar" style="left:'+sx+'px;width:'+bw+'px;background:'+col+'" title="'+esc(t.task_name)+' ('+(t.progress||0)+'%)" onclick="showTaskModal('+t.id+')"><div class="bar-progress" style="width:'+pw+'px;background:rgba(255,255,255,.25)"></div><span class="bar-label">'+(bw>50?esc(t.task_name):'')+'</span></div>';}
-    else if(t.start_date){var x=Math.floor((new Date(t.start_date)-minD)/86400000)*dw;body+='<div class="gantt-bar" style="left:'+x+'px;width:'+dw*7+'px;background:'+getCatColor(t.category)+';opacity:.5" title="'+esc(t.task_name)+'" onclick="showTaskModal('+t.id+')"><span class="bar-label">'+esc(t.task_name)+'</span></div>';}
+    if(t.is_milestone&&t.start_date){var x=Math.floor((new Date(t.start_date)-minD)/86400000)*dw;body+='<div class="gantt-milestone" style="left:'+x+'px;background:'+getCatColor(t.category)+'" title="'+esc(t.task_name)+'" onclick="showTaskModal('+tid+')"></div>';if(t.end_date&&t.end_date!==t.start_date){var ex=Math.floor((new Date(t.end_date)-minD)/86400000)*dw+dw;var bw=Math.max(ex-x,8);body+='<div class="gantt-bar" style="left:'+x+'px;width:'+bw+'px;background:'+getCatColor(t.category)+';opacity:.35;top:15px;height:10px" onclick="showTaskModal('+tid+')"></div>';}}
+    else if(t.start_date&&t.end_date){var sx=Math.floor((new Date(t.start_date)-minD)/86400000)*dw;var ex=Math.floor((new Date(t.end_date)-minD)/86400000)*dw+dw;var bw=Math.max(ex-sx,8);var pw=bw*(t.progress||0)/100;var col=getCatColor(t.category);body+='<div class="gantt-bar" style="left:'+sx+'px;width:'+bw+'px;background:'+col+'" title="'+esc(t.task_name)+' ('+(t.progress||0)+'%)" onclick="showTaskModal('+tid+')"><div class="bar-progress" style="width:'+pw+'px;background:rgba(255,255,255,.25)"></div><span class="bar-label">'+(bw>50?esc(t.task_name):'')+'</span></div>';}
+    else if(t.start_date){var x=Math.floor((new Date(t.start_date)-minD)/86400000)*dw;body+='<div class="gantt-bar" style="left:'+x+'px;width:'+dw*7+'px;background:'+getCatColor(t.category)+';opacity:.5" title="'+esc(t.task_name)+'" onclick="showTaskModal('+tid+')"><span class="bar-label">'+esc(t.task_name)+'</span></div>';}
     body+='</div>';
   });
   document.getElementById('timelineBody').innerHTML=body;
@@ -403,25 +404,29 @@ function renderTaskList(tasks){
   var list=document.getElementById('taskList');
   if(!tasks.length){list.innerHTML=ganttTableExists?'<div class="empty-state"><h3>No tasks yet</h3><p>Add tasks manually, import a schedule file, or extract dates from your emails.</p></div>':'<div class="empty-state"><h3>Gantt table not created</h3><p>Run the SQL script in your Supabase SQL Editor first, then reload.</p></div>';return;}
   list.innerHTML=tasks.map(function(t){var dates=[];if(t.start_date)dates.push(fmtDate(t.start_date));if(t.end_date&&!t.is_milestone)dates.push(fmtDate(t.end_date));
-  return '<div class="task-row" onclick="showTaskModal('+t.id+')"><div class="task-color" style="background:'+getCatColor(t.category)+'"></div>'+(t.is_milestone?'<span class="task-milestone">\u25C6</span>':'')+'<div class="task-info"><div class="task-name">'+esc(t.task_name)+'</div><div class="task-meta">'+dates.join(' \u2192 ')+(t.progress>0?' \xB7 '+t.progress+'%':'')+'</div></div>'+(t.assigned_to?'<span class="task-assigned">'+esc(t.assigned_to)+'</span>':'')+'<div class="task-actions"><button class="task-act-btn del" onclick="event.stopPropagation();deleteTask('+t.id+')" title="Delete">\u2715</button></div></div>';}).join('');
+  var tid="'"+t.id+"'";
+  var progBar=t.progress>0?'<div style="display:flex;align-items:center;gap:6px;margin-top:3px"><div style="flex:1;max-width:80px;height:4px;background:var(--border);border-radius:2px"><div style="width:'+t.progress+'%;height:100%;background:var(--green);border-radius:2px"></div></div><span style="font-size:10px;color:var(--text2)">'+t.progress+'%</span></div>':'';
+  return '<div class="task-row" onclick="showTaskModal('+tid+')"><div class="task-color" style="background:'+getCatColor(t.category)+'"></div>'+(t.is_milestone?'<span class="task-milestone">\u25C6</span>':'')+'<div class="task-info"><div class="task-name">'+esc(t.task_name)+'</div><div class="task-meta">'+dates.join(' \u2192 ')+' \xB7 <span style="color:'+getCatColor(t.category)+'">'+esc(t.category||'General')+'</span>'+(t.assigned_to?' \xB7 '+esc(t.assigned_to):'')+'</div>'+progBar+(t.notes?'<div style="font-size:10px;color:var(--text2);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:260px">'+esc(t.notes)+'</div>':'')+'</div><div class="task-actions"><button class="task-act-btn del" onclick="event.stopPropagation();deleteTask('+tid+')" title="Delete">\u2715</button></div></div>';}).join('');
 }
 function fmtDate(d){if(!d)return'';var dt=new Date(d+'T00:00:00');return dt.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'2-digit'});}
 function scrollToToday(){var tl=document.getElementById('ganttTimeline');var td=document.querySelector('.timeline-gridline.today');if(td)tl.scrollLeft=parseInt(td.style.left)-tl.clientWidth/3;}
 
 // TASK CRUD
+function showMilestoneModal(){showTaskModal();document.getElementById('taskModalTitle').textContent='Add Milestone';document.getElementById('taskMilestone').checked=true;document.getElementById('taskEnd').value='';document.getElementById('taskEnd').parentElement.style.display='none';}
 function showTaskModal(editId){
   if(typeof editId==='object')editId=undefined;
   if(!ganttTableExists){alert('The gantt_tasks table does not exist yet. Run the SQL script in Supabase SQL Editor first.');return;}
   var title=document.getElementById('taskModalTitle');
   if(editId){var t=allTasks.find(function(x){return x.id===editId;});if(!t)return;title.textContent='Edit Task';document.getElementById('taskEditId').value=t.id;document.getElementById('taskName').value=t.task_name||'';document.getElementById('taskCategory').value=t.category||'General';document.getElementById('taskAssigned').value=t.assigned_to||'';document.getElementById('taskStart').value=t.start_date||'';document.getElementById('taskEnd').value=t.end_date||'';document.getElementById('taskProgress').value=t.progress||0;document.getElementById('taskDepends').value=t.depends_on||'';document.getElementById('taskMilestone').checked=t.is_milestone||false;document.getElementById('taskNotes').value=t.notes||'';}
   else{title.textContent='Add Task';document.getElementById('taskEditId').value='';document.getElementById('taskName').value='';document.getElementById('taskCategory').value='General';document.getElementById('taskAssigned').value='';document.getElementById('taskStart').value='';document.getElementById('taskEnd').value='';document.getElementById('taskProgress').value=0;document.getElementById('taskDepends').value='';document.getElementById('taskMilestone').checked=false;document.getElementById('taskNotes').value='';}
+  document.getElementById('taskEnd').parentElement.style.display='';
   showModal('taskModal');
 }
 async function saveTask(){
   var editId=document.getElementById('taskEditId').value;
   var data={task_name:document.getElementById('taskName').value.trim(),category:document.getElementById('taskCategory').value,assigned_to:document.getElementById('taskAssigned').value.trim(),start_date:document.getElementById('taskStart').value||null,end_date:document.getElementById('taskEnd').value||null,progress:parseInt(document.getElementById('taskProgress').value)||0,depends_on:document.getElementById('taskDepends').value.trim(),is_milestone:document.getElementById('taskMilestone').checked,notes:document.getElementById('taskNotes').value.trim()};
   if(!data.task_name){alert('Task name is required.');return;}
-  if(data.is_milestone)data.end_date=data.start_date;
+  if(data.is_milestone&&!data.end_date)data.end_date=data.start_date;
   try{if(editId){await sb('gantt_tasks','id=eq.'+editId,'PATCH',data);}else{data.source='manual';data.source_ref='';await sb('gantt_tasks','','POST',data);}
   allTasks=await sb('gantt_tasks','select=*&order=start_date.asc.nullsfirst');populateAssigneeFilter();renderGantt();closeModal('taskModal');}
   catch(e){alert('Error saving task: '+e.message+'\n\nIf you see "relation does not exist" you need to run the SQL script first.');console.error(e);}
