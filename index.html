@@ -89,13 +89,22 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent)}
 .timeline-body{position:relative}
 .timeline-row{display:flex;align-items:center;height:40px;border-bottom:1px solid rgba(46,51,71,.4);position:relative}
 .timeline-gridline{position:absolute;top:0;bottom:0;width:1px;background:rgba(46,51,71,.4)}
-.timeline-gridline.today{background:var(--accent);opacity:.4;width:2px}
-.gantt-bar{position:absolute;height:22px;border-radius:4px;top:9px;cursor:pointer;transition:opacity .15s;display:flex;align-items:center;overflow:hidden;min-width:8px}
-.gantt-bar:hover{opacity:.85}
-.gantt-bar .bar-progress{height:100%;border-radius:4px 0 0 4px;opacity:.5}
-.gantt-bar .bar-label{font-size:10px;font-weight:600;color:#fff;padding:0 6px;white-space:nowrap;text-shadow:0 1px 2px rgba(0,0,0,.3);position:absolute;left:4px}
-.gantt-milestone{position:absolute;width:16px;height:16px;top:12px;transform:rotate(45deg);border-radius:2px;cursor:pointer}
-.gantt-milestone:hover{opacity:.85}
+.timeline-gridline.today{background:transparent;width:0}
+.today-marker{position:absolute;top:0;bottom:0;width:2px;background:var(--yellow);z-index:5;pointer-events:none}
+.today-marker::before{content:'';position:absolute;top:-4px;left:-5px;width:12px;height:12px;background:var(--yellow);border-radius:50%;border:2px solid var(--bg)}
+.gantt-bar{position:absolute;height:14px;border-radius:7px;top:13px;cursor:pointer;transition:opacity .15s;min-width:8px}
+.gantt-bar:hover{opacity:.85;height:18px;top:11px}
+.gantt-bar .bar-label{font-size:9px;font-weight:600;color:#fff;padding:0 6px;white-space:nowrap;text-shadow:0 1px 2px rgba(0,0,0,.4);position:absolute;left:20px;top:50%;transform:translateY(-50%)}
+.bar-cap{position:absolute;width:10px;height:10px;border-radius:50%;top:2px;border:2px solid var(--bg);z-index:2;cursor:ew-resize}
+.bar-cap.start{left:-3px}.bar-cap.end{right:-3px}
+.bar-progress-tick{position:absolute;top:-4px;width:3px;height:22px;border-radius:2px;z-index:3}
+.bar-progress-tick::before{content:'';position:absolute;top:-3px;left:-3px;width:9px;height:9px;border-radius:50%;border:2px solid var(--bg)}
+.bar-today-tick{position:absolute;top:-4px;width:3px;height:22px;background:var(--yellow);border-radius:2px;z-index:2}
+.bar-today-tick::before{content:'';position:absolute;top:-4px;left:-4px;width:11px;height:11px;background:var(--yellow);border-radius:50%;border:2px solid var(--bg)}
+.gantt-star{position:absolute;top:4px;width:20px;height:20px;z-index:4;cursor:pointer;text-align:center;font-size:16px;line-height:20px;filter:drop-shadow(0 1px 2px rgba(0,0,0,.4));transition:transform .15s}
+.gantt-star:hover{transform:scale(1.3)}
+.gantt-milestone-diamond{position:absolute;width:14px;height:14px;top:13px;transform:rotate(45deg);border-radius:2px;cursor:pointer;z-index:2}
+.gantt-milestone-diamond:hover{opacity:.85}
 .gantt-zoom{display:flex;align-items:center;gap:4px;padding:8px 16px;border-bottom:1px solid var(--border);background:var(--bg)}
 .zoom-btn{padding:4px 10px;border-radius:4px;font-size:11px;font-weight:600;background:var(--surface);color:var(--text2);border:1px solid var(--border)}
 .zoom-btn:hover{color:var(--text)}
@@ -252,6 +261,27 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent)}
 <!-- EMAIL DETAIL MODAL -->
 <div class="modal-overlay" id="emailDetailModal"><div class="modal"><button class="modal-close" onclick="closeModal('emailDetailModal')">&times;</button><div id="emailDetailContent"></div></div></div>
 
+<!-- BAR CONTEXT MENU -->
+<div id="barMenu" style="display:none;position:fixed;z-index:200;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:4px;box-shadow:0 8px 24px rgba(0,0,0,.4)">
+  <button onclick="barMenuEdit()" style="display:block;width:100%;text-align:left;padding:8px 16px;background:none;color:var(--text);font-size:13px;border-radius:4px">Edit Task</button>
+  <button onclick="barMenuAddMilestone()" style="display:block;width:100%;text-align:left;padding:8px 16px;background:none;color:var(--yellow);font-size:13px;border-radius:4px">Add Milestone Note</button>
+</div>
+
+<!-- MILESTONE NOTE MODAL -->
+<div class="modal-overlay" id="milestoneNoteModal"><div class="modal" style="width:420px">
+  <button class="modal-close" onclick="closeModal('milestoneNoteModal')">&times;</button>
+  <h2 id="msNoteTitle">Add Milestone Note</h2>
+  <input type="hidden" id="msNoteId"><input type="hidden" id="msNoteTaskId">
+  <div class="form-row"><div class="form-col"><label>Title</label><input type="text" id="msNoteLabel" placeholder="e.g., Permit approved"></div></div>
+  <div class="form-row"><div class="form-col"><label>Date</label><input type="date" id="msNoteDate"></div></div>
+  <div class="form-row"><div class="form-col"><label>Notes</label><textarea id="msNoteText" placeholder="Details about this milestone..."></textarea></div></div>
+  <div class="modal-actions">
+    <button class="btn-secondary" id="msNoteDeleteBtn" style="display:none;margin-right:auto" onclick="deleteMilestoneNote()">Delete</button>
+    <button class="btn-secondary" onclick="closeModal('milestoneNoteModal')">Cancel</button>
+    <button class="btn-primary" onclick="saveMilestoneNote()">Save</button>
+  </div>
+</div></div>
+
 <script>
 var SUPABASE_URL='https://sncfdhzxekzuimmjxoqn.supabase.co';
 var SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNuY2ZkaHp4ZWt6dWltbWp4b3FuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQwNDM1NzcsImV4cCI6MjA4OTYxOTU3N30.TnJ8vju57YVh_CaI_Yz5eOsgxggUMw4go3_DjnNFff8';
@@ -302,7 +332,7 @@ async function init(){
   }
   try{
     allTasks=await sb('gantt_tasks','select=*&order=start_date.asc.nullsfirst');
-    ganttTableExists=true;populateAssigneeFilter();
+    ganttTableExists=true;populateAssigneeFilter();await loadMilestones();
     console.log('Loaded '+allTasks.length+' tasks');
   }catch(e){
     console.warn('gantt_tasks not found:',e.message);
@@ -389,13 +419,33 @@ function renderGantt(){
   var todayX=Math.floor((today-minD)/86400000)*dw;
   var body='<div style="position:absolute;top:0;left:0;right:0;bottom:0;pointer-events:none;width:'+tw+'px;height:'+tasks.length*40+'px">';
   for(var i=0;i<td;i+=7)body+='<div class="timeline-gridline" style="left:'+i*dw+'px"></div>';
-  if(todayX>=0&&todayX<=tw)body+='<div class="timeline-gridline today" style="left:'+todayX+'px"></div>';
+  if(todayX>=0&&todayX<=tw)body+='<div class="today-marker" style="left:'+todayX+'px;height:'+tasks.length*40+'px"></div>';
   body+='</div>';
-  tasks.forEach(function(t){var tid="'"+t.id+"'";
+  tasks.forEach(function(t,idx){var tid="'"+t.id+"'";
     body+='<div class="timeline-row" style="width:'+tw+'px">';
-    if(t.is_milestone&&t.start_date){var x=Math.floor((new Date(t.start_date)-minD)/86400000)*dw;body+='<div class="gantt-milestone" style="left:'+x+'px;background:'+getCatColor(t.category)+'" title="'+esc(t.task_name)+'" onclick="showTaskModal('+tid+')"></div>';if(t.end_date&&t.end_date!==t.start_date){var ex=Math.floor((new Date(t.end_date)-minD)/86400000)*dw+dw;var bw=Math.max(ex-x,8);body+='<div class="gantt-bar" style="left:'+x+'px;width:'+bw+'px;background:'+getCatColor(t.category)+';opacity:.35;top:15px;height:10px" onclick="showTaskModal('+tid+')"></div>';}}
-    else if(t.start_date&&t.end_date){var sx=Math.floor((new Date(t.start_date)-minD)/86400000)*dw;var ex=Math.floor((new Date(t.end_date)-minD)/86400000)*dw+dw;var bw=Math.max(ex-sx,8);var pw=bw*(t.progress||0)/100;var col=getCatColor(t.category);body+='<div class="gantt-bar" style="left:'+sx+'px;width:'+bw+'px;background:'+col+'" title="'+esc(t.task_name)+' ('+(t.progress||0)+'%)" onclick="showTaskModal('+tid+')"><div class="bar-progress" style="width:'+pw+'px;background:rgba(255,255,255,.25)"></div><span class="bar-label">'+(bw>50?esc(t.task_name):'')+'</span></div>';}
-    else if(t.start_date){var x=Math.floor((new Date(t.start_date)-minD)/86400000)*dw;body+='<div class="gantt-bar" style="left:'+x+'px;width:'+dw*7+'px;background:'+getCatColor(t.category)+';opacity:.5" title="'+esc(t.task_name)+'" onclick="showTaskModal('+tid+')"><span class="bar-label">'+esc(t.task_name)+'</span></div>';}
+    if(t.is_milestone&&t.start_date&&(!t.end_date||t.end_date===t.start_date)){
+      var x=Math.floor((new Date(t.start_date)-minD)/86400000)*dw;
+      body+='<div class="gantt-milestone-diamond" style="left:'+(x-7)+'px;background:'+getCatColor(t.category)+'" title="'+esc(t.task_name)+'" onclick="showTaskModal('+tid+')"></div>';
+    } else if(t.start_date&&t.end_date){
+      var sx=Math.floor((new Date(t.start_date)-minD)/86400000)*dw;
+      var ex=Math.floor((new Date(t.end_date)-minD)/86400000)*dw+dw;
+      var bw=Math.max(ex-sx,8);var col=getCatColor(t.category);
+      body+='<div class="gantt-bar" style="left:'+sx+'px;width:'+bw+'px;background:'+col+'" title="'+esc(t.task_name)+'" onclick="openBarMenu(event,'+tid+')">';
+      body+='<div class="bar-cap start" style="background:'+col+'" title="Start: '+esc(t.start_date)+'"></div>';
+      body+='<div class="bar-cap end" style="background:'+col+'" title="End: '+esc(t.end_date)+'"></div>';
+      body+='<span class="bar-label">'+(bw>60?esc(t.task_name):'')+'</span>';
+      var todayInBar=todayX-sx;
+      if(todayInBar>0&&todayInBar<bw){body+='<div class="bar-today-tick" style="left:'+todayInBar+'px"></div>';}
+      if(t.progress>0){var progX=bw*t.progress/100;var isAhead=t.progress/100>=(todayInBar/bw);var progCol=isAhead?'var(--green)':'var(--red)';
+        body+='<div class="bar-progress-tick" style="left:'+progX+'px;background:'+progCol+'"><'+'/div>';
+        body+='<div style="position:absolute;top:0;left:0;width:'+progX+'px;height:100%;background:rgba(255,255,255,.15);border-radius:7px 0 0 7px"></div>';}
+      body+='</div>';
+      var tMilestones=(window._taskMilestones||[]).filter(function(m){return m.task_id===t.id;});
+      tMilestones.forEach(function(m){if(m.milestone_date){var mx=Math.floor((new Date(m.milestone_date)-minD)/86400000)*dw;if(mx>=sx&&mx<=ex){body+='<div class="gantt-star" style="left:'+(mx-10)+'px" title="'+esc(m.title)+'" onclick="event.stopPropagation();showMilestoneNote(\''+m.id+'\')">&#9733;</div>';}}});
+    } else if(t.start_date){
+      var x=Math.floor((new Date(t.start_date)-minD)/86400000)*dw;
+      body+='<div class="gantt-bar" style="left:'+x+'px;width:'+dw*7+'px;background:'+getCatColor(t.category)+';opacity:.5" title="'+esc(t.task_name)+' (no end date)" onclick="showTaskModal('+tid+')"><span class="bar-label">'+esc(t.task_name)+'</span></div>';
+    }
     body+='</div>';
   });
   document.getElementById('timelineBody').innerHTML=body;
@@ -521,6 +571,20 @@ function showModal(id){document.getElementById(id).classList.add('show');}
 function closeModal(id){document.getElementById(id).classList.remove('show');}
 document.querySelectorAll('.modal-overlay').forEach(function(el){el.addEventListener('click',function(e){if(e.target===el)closeModal(el.id);});});
 if(typeof pdfjsLib!=='undefined')pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+// BAR CONTEXT MENU
+var _barMenuTaskId=null;
+function openBarMenu(evt,taskId){evt.stopPropagation();_barMenuTaskId=taskId;var m=document.getElementById('barMenu');m.style.display='block';m.style.left=evt.clientX+'px';m.style.top=evt.clientY+'px';}
+function barMenuEdit(){document.getElementById('barMenu').style.display='none';showTaskModal(_barMenuTaskId);}
+function barMenuAddMilestone(){document.getElementById('barMenu').style.display='none';var t=allTasks.find(function(x){return x.id===_barMenuTaskId;});if(!t)return;document.getElementById('msNoteTitle').textContent='Add Milestone Note';document.getElementById('msNoteId').value='';document.getElementById('msNoteTaskId').value=t.id;document.getElementById('msNoteLabel').value='';document.getElementById('msNoteDate').value='';document.getElementById('msNoteText').value='';document.getElementById('msNoteDeleteBtn').style.display='none';showModal('milestoneNoteModal');}
+document.addEventListener('click',function(){document.getElementById('barMenu').style.display='none';});
+
+// MILESTONE NOTES CRUD
+window._taskMilestones=[];
+async function loadMilestones(){try{window._taskMilestones=await sb('task_milestones','select=*&order=milestone_date.asc');console.log('Loaded '+window._taskMilestones.length+' milestones');}catch(e){console.warn('task_milestones table may not exist:',e.message);window._taskMilestones=[];}}
+function showMilestoneNote(msId){var m=window._taskMilestones.find(function(x){return x.id===msId;});if(!m)return;document.getElementById('msNoteTitle').textContent='Edit Milestone Note';document.getElementById('msNoteId').value=m.id;document.getElementById('msNoteTaskId').value=m.task_id;document.getElementById('msNoteLabel').value=m.title||'';document.getElementById('msNoteDate').value=m.milestone_date||'';document.getElementById('msNoteText').value=m.notes||'';document.getElementById('msNoteDeleteBtn').style.display='block';showModal('milestoneNoteModal');}
+async function saveMilestoneNote(){var id=document.getElementById('msNoteId').value;var data={task_id:document.getElementById('msNoteTaskId').value,title:document.getElementById('msNoteLabel').value.trim(),milestone_date:document.getElementById('msNoteDate').value||null,notes:document.getElementById('msNoteText').value.trim()};if(!data.title){alert('Title is required.');return;}if(!data.milestone_date){alert('Date is required.');return;}try{if(id){await sb('task_milestones','id=eq.'+id,'PATCH',data);}else{await sb('task_milestones','','POST',data);}await loadMilestones();renderGantt();closeModal('milestoneNoteModal');}catch(e){alert('Error saving milestone note: '+e.message+'\n\nIf this mentions "relation does not exist", run the task_milestones SQL script.');}}
+async function deleteMilestoneNote(){var id=document.getElementById('msNoteId').value;if(!id||!confirm('Delete this milestone note?'))return;try{await sb('task_milestones','id=eq.'+id,'DELETE');await loadMilestones();renderGantt();closeModal('milestoneNoteModal');}catch(e){alert('Error: '+e.message);}}
+
 init();
 </script>
 </body>
