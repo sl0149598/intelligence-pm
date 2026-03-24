@@ -1,1 +1,1 @@
-# cannon-beach-intelligence
+# intelligence-pm
